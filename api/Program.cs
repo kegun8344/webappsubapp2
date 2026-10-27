@@ -1,23 +1,33 @@
+using Scalar.AspNetCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+/*
+ * The React app runs on its own port (4000), so the browser needs permission
+ * to call this API from there (CORS).
+ */
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactClient", policy =>
+        policy.WithOrigins("http://localhost:4000")
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    /* API description and a test page at /scalar/v1 */
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
-app.UseHttpsRedirection();
-
+app.UseCors("ReactClient");
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
