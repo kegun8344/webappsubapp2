@@ -1,5 +1,7 @@
+using api.DAL;
 using api.Data;
 using api.Models;
+using api.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
@@ -28,6 +30,20 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 })
 .AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+/* Points and attempts. TimeProvider gives the current time, and can be faked in unit tests. */
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<IPointService, PointService>();
+builder.Services.AddScoped<IBadgeService, BadgeService>();
+
+/* Data access layer: the same repositories as Subapp 1, so the controllers never use the database directly */
+builder.Services.AddScoped<IQuizRepository, QuizRepository>();
+builder.Services.AddScoped<IModuleRepository, ModuleRepository>();
+builder.Services.AddScoped<ITagRepository, TagRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPointRepository, PointRepository>();
 
 /*
  * The React app runs on its own port (4000), so the browser needs permission
