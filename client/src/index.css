@@ -1,0 +1,26 @@
+/* Global styles for StudyQuest. Bootstrap does most of the work, this file only adds what Bootstrap lacks. */
+
+/* Same big page heading as Subapp 1 */
+.landing-title {
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+}
+
+/* Navbar links: grey, with a soft background on hover and on the active page (same as Subapp 1) */
+.navbar .nav-link {
+    color: rgb(80, 80, 80);
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.9rem;
+}
+
+.navbar .nav-link:hover {
+    color: rgb(30, 30, 30);
+    background-color: rgb(245, 245, 245);
+}
+
+.navbar .nav-link.active {
+    color: rgb(30, 30, 30);
+    background-color: rgb(230, 230, 230);
+}
