@@ -67,6 +67,42 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     context.Database.Migrate();
+
+    /* The modules first, because the demo quizzes are placed in them */
+    ModuleSeeder.Seed(context);
+
+    /* Roles always, demo users only in Development (see IdentitySeeder) */
+    await IdentitySeeder.SeedAsync(scope.ServiceProvider, builder.Configuration);
+
+    /*
+     * Demo quizzes and simulated activity are only added in Development,
+     * because the demo accounts have known passwords. Everywhere else only the
+     * shared tags and module icons are added.
+     */
+    if (!app.Environment.IsDevelopment())
+    {
+        DbSeeder.SeedTags(context);
+        DbSeeder.SeedModuleIcons(context);
+    }
+    else
+    {
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+        var demoTeacher = await userManager.FindByEmailAsync("arne@teacher.no")
+            ?? throw new InvalidOperationException("The demo teacher could not be found after Identity seeding.");
+
+        DbSeeder.Seed(context, demoTeacher.Id);
+
+        /* Extra quizzes and simulated student activity. A problem here must never stop the API from starting. */
+        try
+        {
+            await DemoDataSeeder.SeedAsync(context, TimeProvider.System);
+        }
+        catch (Exception exception)
+        {
+            app.Logger.LogError(exception, "The demo data could not be added.");
+        }
+    }
 }
 
 if (app.Environment.IsDevelopment())
