@@ -3,6 +3,7 @@ import Layout from './components/Layout'
 import AuthProvider from './context/AuthProvider'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 /* All pages and their addresses. New pages are added inside the Layout route. */
@@ -15,6 +16,7 @@ export default function App() {
                     <Route element={<Layout />}>
                         <Route path="/" element={<HomePage />} />
                         <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
                         <Route path="*" element={<NotFoundPage />} />
                     </Route>
                 </Routes>
