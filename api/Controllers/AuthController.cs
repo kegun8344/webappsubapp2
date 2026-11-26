@@ -1,5 +1,6 @@
 using api.DTOs;
 using api.Models;
+using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -11,9 +12,8 @@ using System.Text;
 namespace api.Controllers
 {
     /*
-     * Sign up, log in and "who am I" for the React app.
-     * Same rules as AccountController in Subapp 1, but the answer is a JWT instead of a cookie.
-     * There is no logout endpoint: the React app logs out by forgetting the token.
+     * Sign up, log in, log out and "who am I" for the React app.
+     * Same rules as AccountController in Subapp 1. The login is a JWT, kept in an HttpOnly cookie (see AuthCookie).
      */
     [ApiController]
     [Route("api/[controller]")]
@@ -115,6 +115,17 @@ namespace api.Controllers
             return Ok(await CreateResponseAsync(user));
         }
 
+        // POST: /api/auth/logout
+        [HttpPost("logout")]
+        [AllowAnonymous]
+        public IActionResult Logout()
+        {
+            /* The same options as when the cookie was made, otherwise the browser keeps it */
+            Response.Cookies.Delete(AuthCookie.Name, AuthCookie.Options(Request));
+
+            return NoContent();
+        }
+
         // GET: /api/auth/me
         [HttpGet("me")]
         [Authorize]
@@ -159,9 +170,14 @@ namespace api.Controllers
                 expires: expiresAt,
                 signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
+            Response.Cookies.Append(
+                AuthCookie.Name,
+                new JwtSecurityTokenHandler().WriteToken(token),
+                AuthCookie.Options(Request, expiresAt));
+
+            /* The token itself is never in the answer, so JavaScript never sees it */
             return new AuthResponseDto
             {
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
                 ExpiresAt = expiresAt,
                 User = ToUserDto(user, roles)
             };

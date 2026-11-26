@@ -1,26 +1,1328 @@
-/* Global styles for StudyQuest. Bootstrap does most of the work, this file only adds what Bootstrap lacks. */
-
-/* Same big page heading as Subapp 1 */
-.landing-title {
-    font-size: clamp(2.2rem, 5vw, 3.6rem);
-    font-weight: 800;
-    line-height: 1.08;
-    letter-spacing: -0.02em;
+/* Base font size for larger screens */
+html {
+    font-size: 16px;
+    scrollbar-gutter: stable;
 }
 
-/* Navbar links: grey, with a soft background on hover and on the active page (same as Subapp 1) */
+/* Larger base font size on phones (below Bootstrap's md breakpoint) */
+@media (max-width: 767.98px) {
+    html {
+        font-size: 19px;
+    }
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+/* Extra large call-to-action button on phones */
+@media (max-width: 767.98px) {
+    .btn-hero {
+        font-size: 1.5rem;
+        padding: 1rem 2.5rem;
+        width: 100%;
+    }
+}
+
+/* Navbar links: dark grey by default */
 .navbar .nav-link {
     color: rgb(80, 80, 80);
     border-radius: 0.5rem;
     padding: 0.4rem 0.9rem;
 }
 
+/* Slightly darker on hover */
 .navbar .nav-link:hover {
     color: rgb(30, 30, 30);
     background-color: rgb(245, 245, 245);
 }
 
+/* Active link: grey "card" behind the text */
 .navbar .nav-link.active {
     color: rgb(30, 30, 30);
     background-color: rgb(230, 230, 230);
+}
+
+/*
+ * Result card glow: the result colour radiates out from underneath the card.
+ * The colour (--result-rgb) is set in Result.cshtml, based on the score.
+ */
+.result-glow {
+    box-shadow:
+        0 0px 1px 0px rgba(var(--result-rgb), 1),
+        0 0 32px rgba(var(--result-rgb), 0.2);
+}
+
+/*
+ * Beginning of toast message: floats on top of the page just below the navbar,
+ * pops in, stays for 4 seconds, then fades out over 1 second.
+ */
+.toast-message {
+    position: fixed;
+    top: 5rem;
+    left: 0;
+    right: 0;
+    width: fit-content;
+    max-width: calc(100% - 2rem);
+    margin: 0 auto;
+    z-index: 1080;
+}
+
+.auto-dismiss {
+    animation:
+        toast-pop-in 0.3s ease,
+        auto-dismiss-fade 1s ease 4s forwards;
+}
+
+/* Slides slightly down and fades in when it appears */
+@keyframes toast-pop-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* Fades out at the end */
+@keyframes auto-dismiss-fade {
+    to {
+        opacity: 0;
+    }
+}
+
+/* Small close button with some space from the text */
+.auto-dismiss .btn-close {
+    font-size: 0.7rem;
+    margin-left: 1rem;
+}
+
+/*End of toast message*/
+
+/* Keeps the footer subtle and visually separated from the main content. */
+.footer {
+    padding: 1.25rem 0;
+    margin-top: 3rem;
+    background-color: #ffffff;
+    font-size: 0.9rem;
+}
+
+/*
+ * Sticky footer: the page is always at least as tall as the screen,
+ * the main content fills the free space, and the footer sits below it.
+ * The footer is part of the normal page flow, so it never covers any content.
+ */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #fcfcfc;
+}
+
+body>.container {
+    flex: 1 0 auto;
+}
+
+/* Plus icon on the "Create quiz" buttons, scales with the button text */
+.icon-plus {
+    font-size: 1.1em;
+    line-height: 1;
+    display: inline-flex;
+    /* makes the thin plus as bold as before */
+    -webkit-text-stroke: 0.09em currentColor;
+    /* rotates a quarter turn on hover, see below */
+    transition: transform 0.25s ease;
+}
+
+/*
+ * Icons inside buttons (start, edit, delete).
+ * Each icon sets its own size with --icon-size, default is 1.1em.
+ */
+.btn-icon {
+    width: var(--icon-size, 1.1em);
+    height: var(--icon-size, 1.1em);
+    flex-shrink: 0;
+}
+
+/* Font icons (Bootstrap Icons) in buttons: size comes from font-size instead of width/height */
+.bi.btn-icon {
+    font-size: var(--icon-size, 1.1em);
+    width: auto;
+    height: auto;
+    line-height: 1;
+    display: inline-flex;
+}
+
+/* Individual icon sizes, adjust these numbers */
+.icon-play {
+    --icon-size: 1.8em;
+}
+
+/*
+ * The "Start over" arrow. Its box is padded to the same height as the play icon (1.8em),
+ * so both buttons are equally tall. If you change the size, use (1.8 - size) / 2 as the margin.
+ */
+.icon-restart {
+    --icon-size: 1.4em;
+    margin-block: 0.14em;
+    -webkit-text-stroke: 0.4px currentColor;
+}
+
+/* The review button on quiz cards: same total height as the other card buttons (1.8em) */
+.icon-review {
+    --icon-size: 1.4em;
+    margin-block: 0.14em;
+    -webkit-text-stroke: 0.4px currentColor;
+}
+
+.icon-edit {
+    --icon-size: 1.3em;
+}
+
+.icon-trash {
+    --icon-size: 1.6em;
+    stroke-width: 1;
+    /* The lid is not cut off when it moves outside the icon box */
+    overflow: visible;
+}
+
+.icon-back {
+    --icon-size: 1.2em;
+    /* Thin outline in the same color makes the arrow look bolder */
+    -webkit-text-stroke: 0.05em currentColor;
+}
+
+/* Trash icon on the delete button: the lid tilts open on hover. */
+.icon-trash .lid {
+    transform-origin: 3px 4px;
+    transition: transform 0.2s ease;
+}
+
+/*
+ * Thicker border on all buttons. Filled buttons have a border in the same color as the background,
+ * so only the outline buttons look different, but all buttons stay the same height.
+ */
+.btn {
+    --bs-btn-border-width: 2px;
+}
+
+.btn:hover .icon-trash .lid,
+.btn:focus-visible .icon-trash .lid {
+    transform: rotate(-25deg) translateY(-1px);
+}
+
+/* No animation for users who have asked for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .icon-trash .lid {
+        transition: none;
+    }
+
+    .btn:hover .icon-trash .lid,
+    .btn:focus-visible .icon-trash .lid {
+        transform: none;
+    }
+}
+
+/* Plus icon on the "Create quiz" buttons rotates a quarter turn on hover/keyboard focus */
+.btn:hover .icon-plus,
+.btn:focus-visible .icon-plus {
+    transform: rotate(90deg);
+}
+
+/* No animation for users who have asked for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .icon-plus {
+        transition: none;
+    }
+
+    .dropdown-item {
+        transition: none;
+    }
+
+    .btn:hover .icon-plus,
+    .btn:focus-visible .icon-plus {
+        transform: none;
+    }
+}
+
+/* Same smooth color change as Bootstrap's buttons */
+.dropdown-item {
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+/* Quiz edit: Save/Discard area expands smoothly when something is changed */
+.details-actions {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    /* visibility removes the buttons from tab order and screen readers while collapsed */
+    visibility: hidden;
+    transition: grid-template-rows 0.6s ease, opacity 0.3s ease, visibility 0s linear 1s;
+}
+
+.details-actions.is-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+    transition: grid-template-rows 0.3s ease, opacity 1s ease, visibility 0s linear 0s;
+}
+
+/* Hides the content while the row is shrinking */
+.details-actions-inner {
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Space above the buttons, plus a little room so the focus ring is not cut off */
+.details-actions-content {
+    padding: 1.5rem 0.25rem 0.25rem;
+    margin: 0 -0.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .details-actions,
+    .details-actions.is-open {
+        transition: none;
+    }
+}
+
+/* Icon-only button: no border, subtle background on hover, big enough to tap on mobile */
+.btn-more {
+    --bs-btn-border-color: transparent;
+    --bs-btn-hover-border-color: transparent;
+    --bs-btn-active-border-color: transparent;
+    --bs-btn-color: var(--bs-secondary-color);
+    --bs-btn-hover-color: var(--bs-body-color);
+    --bs-btn-hover-bg: var(--bs-secondary-bg);
+    --bs-btn-active-bg: var(--bs-secondary-bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0;
+    /* Pulls the button towards the card corner so it lines up with the title */
+    margin: -0.5rem -0.75rem 0 0;
+}
+
+.icon-more {
+    --icon-size: 1.5em;
+}
+
+/* Quiz card: small ring with the best score. Grey below 100 %, green with a check mark at 100 %. */
+.score-ring {
+    --score: 0;
+    --ring-color: var(--bs-secondary);
+    /* How thick the ring is */
+    --ring-width: 0.35rem;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    /*
+     * The whole ring is drawn on this one element: a white circle painted on top of the
+     * coloured pie. Nothing has to line up with anything else, so it is always round and centred.
+     */
+    background:
+        radial-gradient(closest-side, var(--bs-body-bg) calc(100% - var(--ring-width)), transparent calc(100% - var(--ring-width) + 0.5px)),
+        conic-gradient(var(--ring-color) calc(var(--score) * 1%), var(--bs-secondary-bg) 0);
+}
+
+.score-ring.is-aced {
+    --ring-color: var(--bs-success);
+}
+
+/* Holds the check mark in the middle */
+.score-ring>span {
+    display: grid;
+    place-items: center;
+    line-height: 1;
+}
+
+.score-ring.is-aced span {
+    color: var(--bs-success);
+}
+
+/* A thin outline in the same colour makes the check mark a little bolder */
+.score-ring .bi {
+    font-size: 1.65rem;
+    line-height: 1;
+    -webkit-text-stroke: 1.3px currentColor;
+    /* Nudges the check mark so it looks centred in the ring */
+    transform: translate(-0.025em, 0);
+}
+
+/* Icons in dropdown menus get the same fixed box, so the text lines up */
+.dropdown-item .btn-icon {
+    width: 1.3em;
+    height: 1.3em;
+    flex-shrink: 0;
+}
+
+/* No empty space above and below the items in dropdown menus */
+.dropdown-menu {
+    --bs-dropdown-padding-y: 0;
+
+    /* Height of each item: space above and below the text (default 0.25rem) */
+    --bs-dropdown-item-padding-y: 1rem;
+
+    /* Space left and right of the content (default 1rem) */
+    --bs-dropdown-item-padding-x: 1rem;
+
+    /* Width of the whole menu (default 10rem) */
+    --bs-dropdown-min-width: 9rem;
+
+    /* Keeps the rounded corners when an item gets a background on hover */
+    overflow: hidden;
+}
+
+/* Font icons in the menu fill the same box as the trash SVG, so the text still lines up */
+.dropdown-item .bi.btn-icon {
+    font-size: 1.3em;
+    width: 1em;
+    height: 1em;
+}
+
+/* Delete item turns red on hover and keyboard focus */
+.dropdown-item.text-danger:hover,
+.dropdown-item.text-danger:focus,
+.dropdown-item.text-danger:active {
+    background-color: var(--bs-danger);
+    color: #fff !important;
+}
+
+/* Trash lid also opens on the Delete item in the more menu */
+.dropdown-item:hover .icon-trash .lid,
+.dropdown-item:focus-visible .icon-trash .lid {
+    transform: rotate(-25deg) translateY(-1px);
+}
+
+.dropdown-item .icon-trash {
+    transform: scale(1.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .dropdown-item:hover .icon-trash .lid,
+    .dropdown-item:focus-visible .icon-trash .lid {
+        transform: none;
+    }
+}
+
+/*
+ * Leaderboard podium: three equal cards standing on gold, silver and bronze blocks (wider screens only).
+ * The blocks grow up first, then the cards land on top: bronze first, the winner last.
+ */
+.podium-block {
+    display: none;
+}
+
+.podium-1 {
+    --podium-color: #ffc93c;
+}
+
+.podium-2 {
+    --podium-color: #b0bec5;
+}
+
+.podium-3 {
+    --podium-color: #e0a774;
+}
+
+@media (min-width: 768px) {
+    .podium-step {
+        display: flex;
+        flex-direction: column;
+        flex: 0 0 220px;
+    }
+
+    /* Same height on all three cards, square bottom corners so they sit flat on the block */
+    .podium-step .card {
+        position: relative;
+        min-height: 15.5rem;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        animation: lb-rise 0.5s ease-out both;
+    }
+
+    .podium-3 .card {
+        animation-delay: 0.5s;
+    }
+
+    .podium-2 .card {
+        animation-delay: 0.7s;
+    }
+
+    .podium-1 .card {
+        animation-delay: 0.9s;
+    }
+
+    /* The trophy floats just above the winner's card, with room under it */
+    .podium-step .lb-crown {
+        position: absolute;
+        top: -1.15rem;
+        left: 0;
+        right: 0;
+        width: fit-content;
+        margin: 0 auto;
+        z-index: 1;
+    }
+
+    .podium-1 .card-body {
+        padding-top: 1.75rem;
+    }
+
+    .podium-block {
+        position: relative;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        border-radius: 0 0 0.75rem 0.75rem;
+        font-size: 3rem;
+        font-weight: 800;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.55);
+        transform-origin: bottom;
+        animation: podium-grow 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+    }
+
+    .podium-1 .podium-block {
+        height: 7.5rem;
+        background: linear-gradient(180deg, #ffe990, #ffc93c 55%, #e9a800);
+        animation-delay: 0.45s;
+    }
+
+    .podium-2 .podium-block {
+        height: 5.25rem;
+        background: linear-gradient(180deg, #eef2f4, #cfd8dc 55%, #a9b6bd);
+        animation-delay: 0.25s;
+    }
+
+    .podium-3 .podium-block {
+        height: 3.75rem;
+        background: linear-gradient(180deg, #f6d2ae, #e0a774 55%, #c4844a);
+        animation-delay: 0.05s;
+    }
+
+    /* A light streak sweeps over the gold block now and then, like the gold badges */
+    .podium-1 .podium-block::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%);
+        transform: translateX(-100%);
+        animation: podium-shine 5s ease-in-out 1.4s infinite;
+    }
+}
+
+/* Phones: no blocks, a coloured stripe on the left shows gold, silver and bronze */
+@media (max-width: 767.98px) {
+    .podium-step .card {
+        border-left: 0.35rem solid var(--podium-color) !important;
+    }
+}
+
+@keyframes podium-grow {
+    from {
+        transform: scaleY(0);
+    }
+
+    to {
+        transform: scaleY(1);
+    }
+}
+
+@keyframes podium-shine {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    25%,
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Fixed width for the rank in the list, so the names line up */
+.leaderboard-rank {
+    min-width: 2rem;
+}
+
+/* The signed-in user's own row and podium card */
+.is-current-user {
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+.leaderboard-list li:last-child {
+    border-bottom: 0 !important;
+}
+
+/* Dashboard: 2 x 2 grid of stat cards, same height as the level card next to it */
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    height: 100%;
+}
+
+/* Dashboard: ring around the level number, filled by progress to the next level */
+.level-ring {
+    position: relative;
+    width: 10rem;
+    aspect-ratio: 1;
+}
+
+.level-ring svg {
+    width: 100%;
+    height: 100%;
+    /* Start the ring at the top instead of the right */
+    transform: rotate(-90deg);
+}
+
+.level-ring circle {
+    fill: none;
+    stroke-width: 10;
+}
+
+.level-ring-track {
+    stroke: var(--bs-secondary-bg);
+}
+
+.level-ring-fill {
+    stroke: var(--bs-primary);
+    stroke-linecap: round;
+}
+
+/* The level number in the middle of the ring */
+.level-ring-number {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 3rem;
+    font-weight: 700;
+}
+
+/* A bit smaller ring on phones */
+@media (max-width: 575.98px) {
+    .level-ring {
+        width: 8rem;
+    }
+
+    .level-ring-number {
+        font-size: 2.5rem;
+    }
+}
+
+/* Result page: "Level up!" box pops in */
+.level-up {
+    background-color: var(--bs-warning-bg-subtle);
+    border: 1px solid var(--bs-warning-border-subtle);
+    animation: level-up-pop 0.6s ease-out;
+}
+
+@keyframes level-up-pop {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    60% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .level-up {
+        animation: none;
+    }
+}
+
+/* Dashboard badges. Called "achievement" to not clash with Bootstrap's .badge class. */
+.achievement-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    color: #212529;
+    background-color: var(--bs-secondary-bg);
+}
+
+.achievement-icon .bi {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.achievement-bronze .achievement-icon {
+    background-color: #e0a774;
+}
+
+.achievement-silver .achievement-icon {
+    background-color: #cfd8dc;
+}
+
+/* Gold: warm gradient */
+.achievement-gold .achievement-icon {
+    background: linear-gradient(135deg, #ffe990, #ffc93c, #f2b705);
+    box-shadow: 0 0 0.75rem rgba(255, 201, 60, 0.7);
+}
+
+/* Diamond: icy blue, light top left to bright blue bottom right */
+.achievement-diamond .achievement-icon {
+    background: linear-gradient(135deg, #eafcff, #d5f3fd, #a5ccf9);
+    box-shadow: 0 0 0.85rem rgba(126, 184, 250, 0.75);
+}
+
+/* Gold and Diamond: a light streak sweeps across the icon from left to right, then pauses */
+.achievement-gold .achievement-icon,
+.achievement-diamond .achievement-icon {
+    position: relative;
+    overflow: hidden;
+}
+
+.achievement-gold .achievement-icon::after,
+.achievement-diamond .achievement-icon::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+    transform: translateX(-100%);
+    animation: badge-shine 5s ease-in-out infinite;
+}
+
+@keyframes badge-shine {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    /* The sweep takes the first 40% of the time, the rest is a pause */
+    40%,
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Locked badges: grey icon on a grey circle */
+.achievement-none .achievement-icon {
+    color: var(--bs-secondary-color);
+}
+
+.achievement-none .achievement-icon .bi {
+    opacity: 0.55;
+}
+
+.achievement-none .achievement-tier {
+    color: var(--bs-secondary-color);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .achievement-gold .achievement-icon::after,
+    .achievement-diamond .achievement-icon::after {
+        animation: none;
+        display: none;
+    }
+}
+
+/* Lets the badge name shrink and wrap next to the icon instead of overflowing the card */
+.achievement-text {
+    min-width: 0;
+}
+
+/* Result page: new badges pop in, same animation as "Level up!" */
+.new-badge {
+    animation: level-up-pop 0.6s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .new-badge {
+        animation: none;
+    }
+}
+
+/* ===== Home page ===== */
+
+/* Small label above the big headings */
+.landing-eyebrow {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bs-primary);
+}
+
+.landing-title {
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+}
+
+/* Signed-in shortcuts: whole card is clickable and lifts a little on hover */
+.home-action {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.home-action:hover,
+.home-action:focus-within {
+    transform: translateY(-2px);
+    box-shadow: 0 0.75rem 1.5rem rgba(20, 30, 50, 0.1) !important;
+}
+
+.home-action-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.85rem;
+    font-size: 1.35rem;
+    color: var(--bs-primary);
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+.home-action-title {
+    font-weight: 700;
+    color: var(--bs-body-color);
+    text-decoration: none;
+}
+
+.home-action-arrow {
+    display: inline-flex;
+    font-size: 1.1rem;
+    color: var(--bs-secondary-color);
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.home-action:hover .home-action-arrow,
+.home-action:focus-within .home-action-arrow {
+    color: var(--bs-primary);
+    transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .home-action,
+    .home-action-arrow {
+        transition: none;
+    }
+
+    .home-action:hover,
+    .home-action:focus-within {
+        transform: none;
+    }
+}
+
+/* Example result card in the hero: fades in from above and lands in place.
+   Straight on small screens, slightly tilted when it sits next to the text. */
+.landing-preview {
+    --tilt: 0deg;
+    max-width: 380px;
+    transform: rotate(var(--tilt));
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    animation: landing-preview-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.4s both;
+}
+
+@media (min-width: 992px) {
+    .landing-preview {
+        --tilt: 1deg;
+        margin-top: -2rem;
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+    }
+}
+
+@keyframes landing-preview-in {
+    from {
+        opacity: 0;
+        transform: translateY(-1.5rem) rotate(-2deg);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) rotate(var(--tilt));
+    }
+}
+
+/* Reduced motion: the card is shown tilted right away, without the animation */
+@media (prefers-reduced-motion: reduce) {
+    .landing-preview {
+        animation: none;
+    }
+}
+
+/* Hero text drops into place one after another. Each element sets its own --delay in the HTML. */
+.landing-drop {
+    animation: landing-drop-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) var(--delay, 0s) both;
+}
+
+@keyframes landing-drop-in {
+    from {
+        opacity: 0;
+        transform: translateY(-1rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .landing-drop {
+        animation: none;
+    }
+}
+
+/* Section headings on the home page */
+.landing-section-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+/* Feature icons: soft blue tiles, same style as the shortcut icons */
+.landing-feature-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.85rem;
+    font-size: 1.4rem;
+    color: var(--bs-primary);
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+/* Numbered steps in "How it works" */
+.landing-step-number {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    font-weight: 800;
+    color: #fff;
+    background-color: var(--bs-primary);
+}
+
+/* Content width for forms and single items (delete pages) */
+.page-narrow {
+    max-width: 700px;
+    margin-inline: auto;
+}
+
+/* Small bars under the streak, one per day up to the max bonus on day 5 */
+.streak-step {
+    height: 0.45rem;
+}
+
+/* ===== Page transitions =====
+   The page content fades in and moves down into place when a page opens.
+   Only <main> is animated, so the navbar and footer stay still. */
+
+/* A new page: all the content animates */
+html:not(.same-page) main {
+    /* backwards, not both: when the fade is done, main lets go of it, so Bootstrap modals inside it are not covered by the dark backdrop */
+    animation: page-in 0.3s ease-out backwards;
+}
+
+/* The same page with other filters: only the results animate */
+.same-page .filter-results {
+    animation: page-in 0.3s ease-out backwards;
+}
+
+@keyframes page-in {
+    from {
+        opacity: 0;
+        transform: translateY(-0.25rem);
+    }
+}
+
+/* Fade only, without the small movement. Used by the "x quizzes found" text. */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+/* The "x quizzes found" text only fades, also when the page reloads with a new filter */
+.same-page #quiz-count {
+    animation-name: fade-in;
+}
+
+/* Search while typing (quiz-index.js): the list and the messages fade in like the rest of the page */
+.live-fade-in {
+    animation: page-in 0.3s ease-out backwards;
+}
+
+#quiz-count.live-fade-in {
+    animation-name: fade-in;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html:not(.same-page) main,
+        .same-page .filter-results,
+        .live-fade-in {
+            animation: none;
+        }
+}
+
+/* Small round (i) button that opens an explanation, e.g. on the streak card */
+.info-btn {
+    border: 0;
+    background: none;
+    padding: 0.25rem;
+    line-height: 1;
+    color: var(--bs-secondary-color);
+    border-radius: 50%;
+}
+
+.info-btn:hover,
+.info-btn:focus-visible {
+    color: var(--bs-primary);
+}
+
+/* Explanation bubbles: white header and a bit more room, so they look like part of the cards */
+.popover {
+    --bs-popover-max-width: 290px;
+    --bs-popover-body-padding-x: 1rem;
+    --bs-popover-body-padding-y: 0.85rem;
+    --bs-popover-header-bg: #fff;
+    --bs-popover-header-font-size: 1rem;
+}
+
+.popover-header {
+    font-weight: 700;
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Tooltips look like the popovers: white with dark text and a soft shadow, instead of Bootstrap's black */
+.tooltip {
+    --bs-tooltip-bg: var(--bs-body-bg);
+    --bs-tooltip-color: var(--bs-body-color);
+    --bs-tooltip-opacity: 1;
+    --bs-tooltip-padding-x: 0.75rem;
+    --bs-tooltip-padding-y: 0.5rem;
+    --bs-tooltip-font-size: 0.875rem;
+    /* drop-shadow also follows the little arrow, so the whole tooltip gets the same soft edge */
+    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.25)) drop-shadow(0 0.25rem 0.5rem rgba(0, 0, 0, 0.1));
+}
+
+/* ===== Leaderboard (gamified) ===== */
+
+/* "Your standing" card: soft blue gradient so it stands out from the white cards */
+.lb-standing {
+    background: linear-gradient(135deg, var(--bs-primary-bg-subtle), var(--bs-body-bg) 70%);
+}
+
+.lb-standing-rank {
+    font-size: clamp(2.5rem, 6vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--bs-primary);
+}
+
+/* Avatar: a coloured circle with the first letter of the name. 8 colours, chosen from the name. */
+.lb-avatar {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #fff;
+}
+
+.lb-avatar-lg {
+    width: 4.5rem;
+    height: 4.5rem;
+    font-size: 1.9rem;
+}
+
+.lb-avatar-0 { background: linear-gradient(135deg, #5c8dff, #3a5bd9); }
+.lb-avatar-1 { background: linear-gradient(135deg, #34c38f, #1d8f68); }
+.lb-avatar-2 { background: linear-gradient(135deg, #f1869d, #d1456a); }
+.lb-avatar-3 { background: linear-gradient(135deg, #9b7bf0, #6a45c9); }
+.lb-avatar-4 { background: linear-gradient(135deg, #f0a24b, #c9741a); }
+.lb-avatar-5 { background: linear-gradient(135deg, #3fc0d4, #1f8aa0); }
+.lb-avatar-6 { background: linear-gradient(135deg, #8aa0b4, #566b7e); }
+.lb-avatar-7 { background: linear-gradient(135deg, #d97ad6, #a443a1); }
+
+/* Podium: a coloured ring around the avatar and a small rank number in the corner */
+.lb-ring {
+    box-shadow: 0 0 0 0.25rem var(--bs-body-bg), 0 0 0 0.45rem var(--lb-ring-color, #cfd8dc);
+}
+
+.podium-1 .lb-ring { --lb-ring-color: #ffc93c; }
+.podium-2 .lb-ring { --lb-ring-color: #b0bec5; }
+.podium-3 .lb-ring { --lb-ring-color: #e0a774; }
+
+.lb-ring-rank {
+    position: absolute;
+    right: -0.35rem;
+    bottom: -0.35rem;
+    display: grid;
+    place-items: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 50%;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #212529;
+    background-color: var(--lb-ring-color, #cfd8dc);
+    border: 2px solid var(--bs-body-bg);
+}
+
+/* Trophy above the winner, gently floating */
+.lb-crown {
+    font-size: 1.75rem;
+    color: #f2b705;
+    margin-bottom: 0.35rem;
+    filter: drop-shadow(0 0 0.4rem rgba(255, 201, 60, 0.7));
+    animation: lb-float 3s ease-in-out infinite;
+}
+
+@keyframes lb-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-0.25rem); }
+}
+
+.lb-points {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+/* Streak chip: a flame and the number of days in a row */
+.lb-streak {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #9a4a00;
+    background-color: #ffe8cc;
+}
+
+.lb-streak .bi {
+    color: #f76707;
+}
+
+/* Small badge icons in the leaderboard (the tier colours come from .achievement-*) */
+.lb-mini .achievement-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+}
+
+.lb-mini .achievement-icon .bi {
+    font-size: 0.95rem;
+}
+
+/* Points bar in the list */
+.lb-bar {
+    height: 0.4rem;
+}
+
+/* Lets long names wrap inside a flex row instead of pushing the points out of the card */
+.min-w-0-lb {
+    min-width: 0;
+}
+
+/* Hall of fame icon */
+.lb-fame-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.85rem;
+    font-size: 1.5rem;
+    color: var(--bs-primary);
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+@keyframes lb-rise {
+    from {
+        opacity: 0;
+        transform: translateY(1.5rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .podium-step .card,
+    .podium-block,
+    .podium-block::after,
+    .lb-crown {
+        animation: none;
+    }
+}
+
+/* ===== Modules (personal) ===== */
+
+/* Overall progress card with a ring */
+.journey {
+    background: linear-gradient(135deg, var(--bs-primary-bg-subtle), var(--bs-body-bg) 70%);
+}
+
+/* Ring: a conic gradient up to --p percent, with a white circle on top */
+.journey-ring {
+    display: grid;
+    place-items: center;
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: 50%;
+    background: conic-gradient(var(--bs-primary) calc(var(--p, 0) * 1%), var(--bs-secondary-bg) 0);
+}
+
+.journey-ring::before {
+    content: "";
+    grid-area: 1 / 1;
+    width: 4.2rem;
+    height: 4.2rem;
+    border-radius: 50%;
+    background-color: var(--bs-body-bg);
+}
+
+.journey-ring-value {
+    grid-area: 1 / 1;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.journey-stats li:not(:last-child)::after {
+    content: "·";
+    margin-left: 1rem;
+    color: var(--bs-secondary-color);
+}
+
+/* Module cards: a coloured top edge and icon, 8 colours chosen from the module name */
+.module-card {
+    border-top: 0.3rem solid var(--module-color, var(--bs-primary)) !important;
+}
+
+.module-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.85rem;
+    font-size: 1.35rem;
+    color: var(--module-color, var(--bs-primary));
+    background-color: var(--module-soft, var(--bs-primary-bg-subtle));
+}
+
+.module-color-0 { --module-color: #3a5bd9; --module-soft: #e3e9ff; }
+.module-color-1 { --module-color: #1d8f68; --module-soft: #dcf5ec; }
+.module-color-2 { --module-color: #d1456a; --module-soft: #fde3ea; }
+.module-color-3 { --module-color: #6a45c9; --module-soft: #ebe3fb; }
+.module-color-4 { --module-color: #c9741a; --module-soft: #fdeed9; }
+.module-color-5 { --module-color: #1f8aa0; --module-soft: #dcf2f6; }
+.module-color-6 { --module-color: #566b7e; --module-soft: #e6ebf0; }
+.module-color-7 { --module-color: #a443a1; --module-soft: #f8e3f7; }
+
+/* Mastery stars */
+.module-stars {
+    color: #f2b705;
+    letter-spacing: 0.1rem;
+}
+
+/* Fixed height for the score and action rows, so the progress bars line up between cards */
+.card-slot {
+    min-height: 2.35rem;
+}
+
+/* Icon picker in the module form: radio buttons that look like a grid of icon buttons */
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(3.25rem, 1fr));
+    gap: 0.5rem;
+}
+
+.icon-option {
+    position: relative;
+    margin: 0;
+}
+
+/* The real radio button stays in the page (keyboard and screen readers) but is not drawn */
+.icon-option input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.icon-option span {
+    display: grid;
+    place-items: center;
+    height: 3.25rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.75rem;
+    font-size: 1.4rem;
+    color: var(--bs-secondary-color);
+    background-color: var(--bs-body-bg);
+    transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.icon-option:hover span {
+    border-color: var(--bs-primary);
+}
+
+.icon-option input:checked + span {
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+    background-color: var(--bs-primary-bg-subtle);
+    box-shadow: 0 0 0 0.15rem var(--bs-primary-bg-subtle);
+}
+
+.icon-option input:focus-visible + span {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+}
+
+/* Colour choices for a module: round swatches in the module colour, a ring around the chosen one */
+.color-option span {
+    /* Fixed width and height, so the swatch stays a circle however wide the grid cell is */
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: 0 auto;
+    border: 3px solid var(--bs-body-bg);
+    border-radius: 50%;
+    background-color: var(--module-color);
+    box-shadow: 0 0 0 1px var(--bs-border-color);
+}
+
+.color-option:hover span {
+    border-color: var(--bs-body-bg);
+    box-shadow: 0 0 0 2px var(--module-color);
+}
+
+.color-option input:checked+span {
+    border-color: var(--bs-body-bg);
+    background-color: var(--module-color);
+    box-shadow: 0 0 0 3px var(--module-color);
 }

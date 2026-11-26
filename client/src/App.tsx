@@ -1,18 +1,26 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
+import AuthProvider from './context/AuthProvider'
 import HomePage from './pages/HomePage'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 /* All pages and their addresses. New pages are added inside the Layout route. */
 export default function App() {
     return (
         <BrowserRouter>
-            <Routes>
-                <Route element={<Layout />}>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="*" element={<NotFoundPage />} />
-                </Route>
-            </Routes>
+            {/* Every page can see who is signed in */}
+            <AuthProvider>
+                <Routes>
+                    <Route element={<Layout />}>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                        <Route path="*" element={<NotFoundPage />} />
+                    </Route>
+                </Routes>
+            </AuthProvider>
         </BrowserRouter>
     )
 }
