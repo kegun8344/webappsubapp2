@@ -237,6 +237,117 @@ namespace api.Controllers
             return NoContent();
         }
 
+        // GET: /api/tags/mine
+        // The user's own tags with how many quizzes each is on, for the My tags page.
+        [HttpGet("tags/mine")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<List<TagUsage>>> GetMine()
+        {
+            var userId = CurrentUserId;
+
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var tags = await tagRepository.GetOwnWithUsageAsync(userId);
+
+            if (tags == null)
+            {
+                return Problem("Your tags could not be loaded. Please try again.", statusCode: StatusCodes.Status500InternalServerError);
+            }
+
+            return tags;
+        }
+
+        // PUT: /api/tags/3
+        // Renames one of the user's own tags. Course tags cannot be renamed.
+        [HttpPut("tags/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<TagDto>> Rename(int id, RenameTagDto dto)
+        {
+            var tag = await tagRepository.GetByIdAsync(id);
+
+            if (tag == null)
+            {
+                logger.LogWarning("Rename requested for tag ID {TagId}, but the tag was not found.", id);
+                return NotFound();
+            }
+
+            /* Only the owner can rename a personal tag */
+            if (tag.OwnerUserId == null || tag.OwnerUserId != CurrentUserId)
+            {
+                logger.LogWarning("User {UserId} tried to rename tag ID {TagId} without permission.", CurrentUserId, id);
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
+            var name = dto.Name.Trim();
+
+            if (name.Length == 0)
+            {
+                ModelState.AddModelError(nameof(dto.Name), "A tag name must be between 1 and 30 characters.");
+                return ValidationProblem(ModelState);
+            }
+
+            /* The new name must not match a course tag or another of the user's tags ("Exam" and "exam" are the same) */
+            var existing = await tagRepository.FindAvailableByNameAsync(CurrentUserId, name.ToLower());
+
+            if (existing != null && existing.Id != tag.Id)
+            {
+                ModelState.AddModelError(nameof(dto.Name), $"A tag called \"{existing.Name}\" already exists.");
+                return ValidationProblem(ModelState);
+            }
+
+            var oldName = tag.Name;
+            tag.Name = name;
+
+            if (!await tagRepository.UpdateAsync(tag))
+            {
+                return Problem("The tag could not be renamed. Please try again.", statusCode: StatusCodes.Status500InternalServerError);
+            }
+
+            logger.LogInformation("User {UserId} renamed tag '{OldName}' to '{NewName}'.", CurrentUserId, oldName, name);
+
+            return TagDto.FromTag(tag);
+        }
+
+        // DELETE: /api/tags/3
+        // Deletes one of the user's own tags and removes it from every quiz. Course tags cannot be deleted.
+        [HttpDelete("tags/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var tag = await tagRepository.GetByIdAsync(id);
+
+            if (tag == null)
+            {
+                logger.LogWarning("Delete requested for tag ID {TagId}, but the tag was not found.", id);
+                return NotFound();
+            }
+
+            /* Only the owner can delete a personal tag */
+            if (tag.OwnerUserId == null || tag.OwnerUserId != CurrentUserId)
+            {
+                logger.LogWarning("User {UserId} tried to delete tag ID {TagId} without permission.", CurrentUserId, id);
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+
+            if (!await tagRepository.DeleteAsync(tag))
+            {
+                return Problem("The tag could not be deleted. Please try again.", statusCode: StatusCodes.Status500InternalServerError);
+            }
+
+            logger.LogInformation("User {UserId} deleted their tag '{TagName}'.", CurrentUserId, tag.Name);
+
+            return NoContent();
+        }
+        
         /* The signed-in user's Identity ID, read from the token */
         private string? CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
     }

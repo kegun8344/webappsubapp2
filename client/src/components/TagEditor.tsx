@@ -1,25 +1,28 @@
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import { ApiError } from '../services/apiClient'
 import { attachTag, createTag, removeTag } from '../services/quizService'
-import { tagColors, type Tag } from '../types/quiz'
+import type { Tag } from '../types/quiz'
 
 interface TagEditorProps {
     quizId: number
     /* The tags on the quiz now */
     tags: Tag[]
-    /* The catalog: shared tags and the user's own tags */
+    /* The catalog: course tags and the user's own tags */
     catalog: Tag[]
-    /* Teachers and administrators can put new tags in the shared catalog */
+    /* Teachers and administrators can make new tags course tags */
     canShare: boolean
     /* Called after a change, so the page can load the quiz again */
     onChanged: (message: string) => Promise<void>
 }
 
-/* Tags on a quiz (many-to-many): remove, add from the catalog, or create a new one. Same parts as the Edit quiz page in Subapp 1. */
+/*
+ * Tags on a quiz (many-to-many): remove, add from the catalog, or create a new one. Same parts as the Edit quiz page in Subapp 1.
+ * Tags are only used for filtering, so they have no colour choice. They are all shown grey, like in Subapp 1.
+ */
 export default function TagEditor({ quizId, tags, catalog, canShare, onChanged }: TagEditorProps) {
     const [selectedTagId, setSelectedTagId] = useState('')
     const [name, setName] = useState('')
-    const [color, setColor] = useState('primary')
     const [shared, setShared] = useState(true)
     const [nameError, setNameError] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
@@ -63,14 +66,18 @@ export default function TagEditor({ quizId, tags, catalog, canShare, onChanged }
             return
         }
 
-        if (await run(() => createTag(quizId, { name: trimmed, color, shared: canShare && shared }), `Tag "${trimmed}" added to the quiz.`)) {
+        /* The API still has a Color field, so every new tag gets the same grey */
+        if (await run(() => createTag(quizId, { name: trimmed, color: 'secondary', shared: canShare && shared }), `Tag "${trimmed}" added to the quiz.`)) {
             setName('')
         }
     }
 
     return (
         <>
-            <h3 className="h6 fw-bold mb-2">Tags</h3>
+            <div className="d-flex justify-content-between align-items-center gap-2 mb-2">
+                <h3 className="h6 fw-bold mb-0">Tags</h3>
+                <Link to="/tags" className="small link-offset-2">Manage my tags</Link>
+            </div>
 
             {error && <div className="alert alert-danger py-2" role="alert">{error}</div>}
 
@@ -78,7 +85,7 @@ export default function TagEditor({ quizId, tags, catalog, canShare, onChanged }
             {tags.length > 0 ? (
                 <div className="d-flex flex-wrap gap-2 mb-3">
                     {tags.map((tag) => (
-                        <span key={tag.id} className={`badge text-bg-${tag.color} d-inline-flex align-items-center gap-1`}>
+                        <span key={tag.id} className="badge text-bg-secondary d-inline-flex align-items-center gap-1">
                             {tag.name}
                             <button
                                 type="button"
@@ -98,11 +105,11 @@ export default function TagEditor({ quizId, tags, catalog, canShare, onChanged }
 
             {available.length > 0 && (
                 <form className="mb-4" onSubmit={handleAttach}>
-                    <label htmlFor="existing-tag" className="form-label small">Add a tag from the catalog</label>
+                    <label htmlFor="existing-tag" className="form-label small">Add a course tag or one of your own</label>
                     <div className="d-flex gap-2">
                         <select id="existing-tag" className="form-select" value={selectedTagId} onChange={(event) => setSelectedTagId(event.target.value)}>
                             <option value="" disabled hidden>Choose a tag</option>
-                            <optgroup label="Shared tags">
+                            <optgroup label="Course tags">
                                 {available.filter((tag) => tag.isShared).map((tag) => (
                                     <option key={tag.id} value={tag.id}>{tag.name}</option>
                                 ))}
@@ -120,16 +127,16 @@ export default function TagEditor({ quizId, tags, catalog, canShare, onChanged }
                 </form>
             )}
 
-            {/* Everyone can create their own tags. Teachers and administrators can also share them. */}
+            {/* Everyone can create their own tags. Teachers and administrators can also make course tags. */}
             <h3 className="h6 fw-bold mb-2">Create a new tag</h3>
             <form onSubmit={handleCreate} noValidate>
-                <div className="mb-2">
+                <div className="mb-3">
                     <label htmlFor="new-tag-name" className="form-label small">New tag</label>
                     <input
                         id="new-tag-name"
                         className={`form-control${nameError ? ' is-invalid' : ''}`}
                         maxLength={30}
-                        placeholder="e.g. Exam relevant"
+                        placeholder="e.g. Exam prep"
                         value={name}
                         aria-invalid={Boolean(nameError)}
                         aria-describedby={nameError ? 'new-tag-name-error' : undefined}
@@ -141,34 +148,11 @@ export default function TagEditor({ quizId, tags, catalog, canShare, onChanged }
                     {nameError && <div id="new-tag-name-error" className="invalid-feedback">{nameError}</div>}
                 </div>
 
-                {/* Coloured buttons, so the colour can be seen before choosing it */}
-                <fieldset className="mb-3">
-                    <legend className="form-label small mb-1">Color</legend>
-                    <div className="d-flex flex-wrap gap-2">
-                        {tagColors.map((option) => (
-                            <span key={option.value}>
-                                <input
-                                    type="radio"
-                                    className="btn-check"
-                                    name="new-tag-color"
-                                    id={`tag-color-${option.value}`}
-                                    value={option.value}
-                                    checked={color === option.value}
-                                    onChange={() => setColor(option.value)}
-                                />
-                                <label className={`btn btn-sm btn-outline-${option.value}`} htmlFor={`tag-color-${option.value}`}>
-                                    {option.label}
-                                </label>
-                            </span>
-                        ))}
-                    </div>
-                </fieldset>
-
                 {canShare ? (
                     <div className="form-check mb-3">
                         <input className="form-check-input" type="checkbox" id="new-tag-shared" checked={shared} onChange={(event) => setShared(event.target.checked)} />
                         <label className="form-check-label small" htmlFor="new-tag-shared">
-                            Add to the shared catalog (every user can use this tag)
+                            Make it a course tag (every user can use it)
                         </label>
                     </div>
                 ) : (

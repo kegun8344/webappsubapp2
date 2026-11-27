@@ -29,9 +29,6 @@ export default function QuizCard({ quiz, onDelete }: QuizCardProps) {
                             <span className="badge bg-secondary">PRIVATE</span>
                         )}
 
-                        {quiz.tags.map((tag) => (
-                            <span key={tag.id} className={`badge text-bg-${tag.color}`}>{tag.name}</span>
-                        ))}
                     </div>
 
                     <div className="d-flex align-items-start justify-content-between gap-2 mb-1">

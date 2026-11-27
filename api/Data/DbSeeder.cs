@@ -21,11 +21,11 @@ namespace api.Data
         {
             var starterTags = new (string Name, string Color)[]
             {
-                ("Short quiz", "info"),
-                ("Exam relevant", "danger"),
-                ("Beginner", "success"),
-                ("Advanced", "dark"),
-                ("Practice", "primary")
+                ("Theory", "info"),
+                ("Coding", "primary"),
+                ("Exam prep", "danger"),
+                ("Revision", "success"),
+                ("Quick", "secondary")
             };
 
             foreach (var (name, color) in starterTags)

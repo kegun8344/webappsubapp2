@@ -22,6 +22,7 @@ import UsersPage from './pages/UsersPage'
 import DeleteUserPage from './pages/DeleteUserPage'
 import MoveQuizPage from './pages/MoveQuizPage'
 import QuizAnalysisPage from './pages/QuizAnalysisPage'
+import MyTagsPage from './pages/MyTagsPage'
 
 /* All pages and their addresses. New pages are added inside the Layout route. */
 export default function App() {
@@ -56,7 +57,7 @@ export default function App() {
                         <Route path="/quizzes/:id/move" element={<RequireAuth roles={['Admin']}><MoveQuizPage /></RequireAuth>} />
                         {/* The quiz owner or an administrator (the API checks the owner) */}
                         <Route path="/quizzes/:id/analysis" element={<RequireAuth roles={['Teacher', 'Admin']}><QuizAnalysisPage /></RequireAuth>} />
-
+                        <Route path="/tags" element={<RequireAuth><MyTagsPage /></RequireAuth>} />
                         <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                         {/* Administrator accounts are protected and cannot be deleted (the API refuses it too) */}
                         <Route path="/settings/delete" element={<RequireAuth roles={['Student', 'Teacher']}><DeleteAccountPage /></RequireAuth>} />

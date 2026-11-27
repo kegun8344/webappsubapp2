@@ -109,6 +109,13 @@ export interface QuestionFormRequest {
 }
 
 /* The body when creating a tag on a quiz (CreateTagDto) */
+/* One of the user's own tags and how many quizzes it is on (TagUsage in the API) */
+export interface MyTag {
+    id: number
+    name: string
+    color: string
+    quizCount: number
+}
 export interface CreateTagRequest {
     name: string
     color: string

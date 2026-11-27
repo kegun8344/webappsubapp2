@@ -319,22 +319,22 @@ namespace api.Data
 
             var tagsByQuiz = new Dictionary<string, string[]>
             {
-                ["ASP.NET MVC Basics"] = new[] { "Beginner" },
-                ["Entity Framework Core"] = new[] { "Exam relevant" },
-                ["Validation, Errors and Logging"] = new[] { "Advanced", "Exam relevant" },
-                ["Razor Views and Tag Helpers"] = new[] { "Beginner", "Short quiz" },
-                ["Routing and Model Binding"] = new[] { "Exam relevant" },
-                ["EF Core Relationships and Migrations"] = new[] { "Advanced", "Exam relevant" },
-                ["Repository Pattern and Dependency Injection"] = new[] { "Exam relevant" },
-                ["Unit Testing with xUnit"] = new[] { "Practice" },
-                ["Identity, Roles and Authorization"] = new[] { "Exam relevant" },
-                ["Passwords, Cookies and Security Basics"] = new[] { "Beginner", "Short quiz" },
-                ["REST and HTTP Fundamentals"] = new[] { "Beginner" },
-                ["Building a Web API with ASP.NET Core"] = new[] { "Exam relevant" },
-                ["React Basics"] = new[] { "Beginner", "Short quiz" },
-                ["React and API Integration"] = new[] { "Advanced" },
-                ["Exam Practice: Mixed Revision 1"] = new[] { "Exam relevant", "Practice" },
-                ["Exam Practice: Mixed Revision 2"] = new[] { "Advanced", "Exam relevant", "Practice" }
+                ["ASP.NET MVC Basics"] = new[] { "Theory" },
+                ["Entity Framework Core"] = new[] { "Exam prep" },
+                ["Validation, Errors and Logging"] = new[] { "Coding", "Exam prep" },
+                ["Razor Views and Tag Helpers"] = new[] { "Theory", "Quick" },
+                ["Routing and Model Binding"] = new[] { "Exam prep" },
+                ["EF Core Relationships and Migrations"] = new[] { "Coding", "Exam prep" },
+                ["Repository Pattern and Dependency Injection"] = new[] { "Exam prep" },
+                ["Unit Testing with xUnit"] = new[] { "Revision" },
+                ["Identity, Roles and Authorization"] = new[] { "Exam prep" },
+                ["Passwords, Cookies and Security Basics"] = new[] { "Theory", "Quick" },
+                ["REST and HTTP Fundamentals"] = new[] { "Theory" },
+                ["Building a Web API with ASP.NET Core"] = new[] { "Exam prep" },
+                ["React Basics"] = new[] { "Theory", "Quick" },
+                ["React and API Integration"] = new[] { "Coding" },
+                ["Exam Practice: Mixed Revision 1"] = new[] { "Exam prep", "Revision" },
+                ["Exam Practice: Mixed Revision 2"] = new[] { "Coding", "Exam prep", "Revision" }
             };
 
             var titles = tagsByQuiz.Keys.ToList();

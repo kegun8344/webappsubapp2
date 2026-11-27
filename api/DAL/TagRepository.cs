@@ -35,6 +35,54 @@ namespace api.DAL
             }
         }
 
+        public async Task<List<TagUsage>?> GetOwnWithUsageAsync(string userId)
+        {
+            try
+            {
+                return await _db.Tags
+                    .AsNoTracking()
+                    .Where(t => t.OwnerUserId == userId)
+                    .OrderBy(t => t.Name)
+                    .Select(t => new TagUsage(t.Id, t.Name, t.Color, t.Quizzes.Count))
+                    .ToListAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "[TagRepository] Could not load the tags of user {UserId}.", userId);
+                return null;
+            }
+        }
+
+        public async Task<bool> UpdateAsync(Tag tag)
+        {
+            try
+            {
+                _db.Tags.Update(tag);
+                await _db.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "[TagRepository] Could not update tag ID {TagId}.", tag.Id);
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteAsync(Tag tag)
+        {
+            try
+            {
+                _db.Tags.Remove(tag);
+                await _db.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "[TagRepository] Could not delete tag ID {TagId}.", tag.Id);
+                return false;
+            }
+        }
+        
         public async Task<Tag?> GetByIdAsync(int id)
         {
             try

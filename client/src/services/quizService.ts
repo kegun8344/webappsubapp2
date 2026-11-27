@@ -1,5 +1,5 @@
 import { apiRequest } from './apiClient'
-import type { CreateTagRequest, ModuleOption, QuizDetail, QuizFilters, QuizFormRequest, QuizListItem, Tag } from '../types/quiz'
+import type { CreateTagRequest, ModuleOption, MyTag, QuizDetail, QuizFilters, QuizFormRequest, QuizListItem, Tag } from '../types/quiz'
 
 /* Builds "?view=all&search=ef" from the filters, leaving out the empty ones */
 function toQueryString(filters: QuizFilters): string {
@@ -42,6 +42,22 @@ export function deleteQuiz(id: number): Promise<void> {
 }
 
 /* Shared tags and the user's own tags */
+/* The user's own tags with how many quizzes each is on (My tags page) */
+export function getMyTags(): Promise<MyTag[]> {
+    return apiRequest<MyTag[]>('/api/tags/mine')
+}
+
+export function renameMyTag(id: number, name: string): Promise<Tag> {
+    return apiRequest<Tag>(`/api/tags/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ name }),
+    })
+}
+
+/* Deletes the tag and removes it from every quiz it is on */
+export function deleteMyTag(id: number): Promise<void> {
+    return apiRequest<void>(`/api/tags/${id}`, { method: 'DELETE' })
+}
 export function getTags(): Promise<Tag[]> {
     return apiRequest<Tag[]>('/api/tags')
 }

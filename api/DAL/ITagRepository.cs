@@ -18,6 +18,15 @@ namespace api.DAL
 
         Task<Tag?> GetByIdAsync(int id);
 
+        /* The user's own tags with how many quizzes each is on, sorted by name */
+        Task<List<TagUsage>?> GetOwnWithUsageAsync(string userId);
+
+        /* Saves changes to a tracked tag, e.g. a new name */
+        Task<bool> UpdateAsync(Tag tag);
+
+        /* Deletes the tag. It is removed from every quiz it is on (the database does this). */
+        Task<bool> DeleteAsync(Tag tag);
+
         /* A shared tag with this name, case-insensitive (the name must be lower case) */
         Task<Tag?> FindSharedByNameAsync(string lowerName);
 
