@@ -60,7 +60,7 @@ export default function Layout() {
 
     return (
         <>
-            <nav className="navbar navbar-expand-lg bg-white border-bottom mb-4">
+            <nav className="navbar navbar-expand-lg bg-body border-bottom mb-4">
                 <div className="container">
                     <NavLink className="navbar-brand fw-bold text-primary" to="/" onClick={closeMenu}>
                         StudyQuest
@@ -92,9 +92,13 @@ export default function Layout() {
 
                                     <li className="nav-item text-secondary small px-2 d-flex align-items-center gap-2">
                                         <span>{user.email}</span>
-                                        {label && <span className="badge text-bg-light border">{label}</span>}
+                                        {label && <span className="badge bg-body-tertiary text-body border">{label}</span>}
                                     </li>
-
+                                    <li className="nav-item">
+                                        <NavLink className="nav-link" to="/settings" onClick={closeMenu}>
+                                            <i className="bi bi-gear me-1" aria-hidden="true"></i>Settings
+                                        </NavLink>
+                                    </li>
                                     <li className="nav-item">
                                         <button type="button" className="nav-link btn btn-link" onClick={handleLogout}>
                                             Log out

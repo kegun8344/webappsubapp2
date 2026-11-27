@@ -15,6 +15,9 @@ import LeaderboardPage from './pages/LeaderboardPage'
 import DashboardPage from './pages/DashboardPage'
 import ModulesPage from './pages/ModulesPage'
 import ModuleFormPage from './pages/ModuleFormPage'
+import SettingsProvider from './context/SettingsProvider'
+import SettingsPage from './pages/SettingsPage'
+import DeleteAccountPage from './pages/DeleteAccountPage'
 
 /* All pages and their addresses. New pages are added inside the Layout route. */
 export default function App() {
@@ -22,6 +25,7 @@ export default function App() {
         <BrowserRouter>
             {/* Every page can see who is signed in */}
             <AuthProvider>
+                <SettingsProvider>
                 <Routes>
                     <Route element={<Layout />}>
                         <Route path="/" element={<HomePage />} />
@@ -43,9 +47,12 @@ export default function App() {
                         {/* Only students have a dashboard (the API also gives 403 to everyone else) */}
                         <Route path="/dashboard" element={<RequireAuth roles={['Student']}><DashboardPage /></RequireAuth>} />
 
+                        <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
+                        <Route path="/settings/delete" element={<RequireAuth><DeleteAccountPage /></RequireAuth>} />
                         <Route path="*" element={<NotFoundPage />} />
                     </Route>
                 </Routes>
+                </SettingsProvider>
             </AuthProvider>
         </BrowserRouter>
     )

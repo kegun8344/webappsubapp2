@@ -16,7 +16,7 @@ html {
 .btn-link.nav-link:focus,
 .form-control:focus,
 .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem var(--bs-body-bg), 0 0 0 0.25rem #258cfb;
 }
 
 /* Extra large call-to-action button on phones */
@@ -30,21 +30,21 @@ html {
 
 /* Navbar links: dark grey by default */
 .navbar .nav-link {
-    color: rgb(80, 80, 80);
+    color: var(--sq-nav-link);
     border-radius: 0.5rem;
     padding: 0.4rem 0.9rem;
 }
 
 /* Slightly darker on hover */
 .navbar .nav-link:hover {
-    color: rgb(30, 30, 30);
-    background-color: rgb(245, 245, 245);
+    color: var(--sq-nav-link-strong);
+    background-color: var(--sq-nav-hover-bg);
 }
 
 /* Active link: grey "card" behind the text */
 .navbar .nav-link.active {
-    color: rgb(30, 30, 30);
-    background-color: rgb(230, 230, 230);
+    color: var(--sq-nav-link-strong);
+    background-color: var(--sq-nav-active-bg);
 }
 
 /*
@@ -105,7 +105,7 @@ html {
 .footer {
     padding: 1.25rem 0;
     margin-top: 3rem;
-    background-color: #ffffff;
+    background-color: var(--bs-body-bg);
     font-size: 0.9rem;
 }
 
@@ -118,7 +118,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background-color: #fcfcfc;
+    background-color: var(--sq-page-bg);
 }
 
 body>.container {
@@ -1000,7 +1000,7 @@ html:not(.same-page) main {
     --bs-popover-max-width: 290px;
     --bs-popover-body-padding-x: 1rem;
     --bs-popover-body-padding-y: 0.85rem;
-    --bs-popover-header-bg: #fff;
+    --bs-popover-header-bg: var(--bs-body-bg);
     --bs-popover-header-font-size: 1rem;
 }
 
@@ -1119,8 +1119,8 @@ html:not(.same-page) main {
     border-radius: 999px;
     font-size: 0.8rem;
     font-weight: 700;
-    color: #9a4a00;
-    background-color: #ffe8cc;
+    color: var(--sq-streak-color);
+    background-color: var(--sq-streak-bg);
 }
 
 .lb-streak .bi {
@@ -1325,4 +1325,108 @@ html:not(.same-page) main {
     border-color: var(--bs-body-bg);
     background-color: var(--module-color);
     box-shadow: 0 0 0 3px var(--module-color);
+}
+
+/* ===== User settings: theme, reduced motion and colour vision (see Views/Settings and _Layout.cshtml) ===== */
+
+/*
+ * Colours used by the site's own styles. Light values are the original ones,
+ * the dark block below replaces them when data-bs-theme="dark" is on <html>.
+ */
+:root {
+    --sq-page-bg: #fcfcfc;
+    --sq-nav-link: rgb(80, 80, 80);
+    --sq-nav-link-strong: rgb(30, 30, 30);
+    --sq-nav-hover-bg: rgb(245, 245, 245);
+    --sq-nav-active-bg: rgb(230, 230, 230);
+    --sq-streak-color: #9a4a00;
+    --sq-streak-bg: #ffe8cc;
+}
+
+/* Dark mode: Bootstrap switches its own colours, these follow it */
+[data-bs-theme="dark"] {
+    /*
+     * The page is darker than the cards, so cards stand out like they do in light mode.
+     * Cards keep Bootstrap's body colour, which the score rings and gradients inside them also use.
+     */
+    --sq-page-bg: #131518;
+
+    /* A faint light edge on Bootstrap's shadows, since a dark shadow barely shows on a dark page */
+    --bs-box-shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0.125rem 0.25rem rgba(0, 0, 0, 0.5);
+    --bs-box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+    --bs-box-shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 1rem 3rem rgba(0, 0, 0, 0.6);
+
+    --sq-nav-link: var(--bs-secondary-color);
+    --sq-nav-link-strong: var(--bs-emphasis-color);
+    --sq-nav-hover-bg: var(--bs-tertiary-bg);
+    --sq-nav-active-bg: var(--bs-secondary-bg);
+    --sq-streak-color: #ffb46b;
+    --sq-streak-bg: rgba(247, 103, 7, 0.2);
+}
+
+/* The light pastel behind module icons becomes a dark tint of the module colour */
+[data-bs-theme="dark"] [class*="module-color-"] {
+    --module-soft: color-mix(in srgb, var(--module-color) 25%, var(--bs-body-bg));
+}
+
+/*
+ * Reduce motion, chosen on the Settings page (the @media rules above follow the system setting).
+ * Animations still run, but finish at once, so everything ends up in its final state and
+ * scripts that wait for animationend (the toast messages in site.js) keep working.
+ */
+[data-motion="reduce"] *,
+[data-motion="reduce"] *::before,
+[data-motion="reduce"] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+}
+
+/* The shine that moves across gold and diamond badges is hidden completely */
+[data-motion="reduce"] .achievement-gold .achievement-icon::after,
+[data-motion="reduce"] .achievement-diamond .achievement-icon::after {
+    display: none;
+}
+
+/*
+ * Colour vision. Green/red (right/wrong, good/bad score) are replaced with colours that stay
+ * easy to tell apart, based on the Okabe-Ito and Paul Tol colour-blind safe palettes.
+ * Text and icons always say the same thing, so colour is never the only signal.
+ */
+[data-cvd="redgreen"] {
+    --sq-cvd-success: #0072b2;
+    --sq-cvd-success-rgb: 0, 114, 178;
+    --sq-cvd-danger: #d55e00;
+    --sq-cvd-danger-rgb: 213, 94, 0;
+    --sq-cvd-warning: #e69f00;
+    --sq-cvd-warning-rgb: 230, 159, 0;
+}
+
+[data-cvd="blueyellow"] {
+    --sq-cvd-success: #117733;
+    --sq-cvd-success-rgb: 17, 119, 51;
+    --sq-cvd-danger: #cc3311;
+    --sq-cvd-danger-rgb: 204, 51, 17;
+    --sq-cvd-warning: #ee7733;
+    --sq-cvd-warning-rgb: 238, 119, 51;
+}
+
+/* Both modes feed the same Bootstrap variables, used by text-*, bg-*, progress bars, alerts and the result glow */
+[data-cvd="redgreen"],
+[data-cvd="blueyellow"] {
+    --bs-success: var(--sq-cvd-success);
+    --bs-success-rgb: var(--sq-cvd-success-rgb);
+    --bs-success-text-emphasis: var(--sq-cvd-success);
+    --bs-success-bg-subtle: color-mix(in srgb, var(--sq-cvd-success) 15%, var(--bs-body-bg));
+    --bs-success-border-subtle: color-mix(in srgb, var(--sq-cvd-success) 40%, var(--bs-body-bg));
+
+    --bs-danger: var(--sq-cvd-danger);
+    --bs-danger-rgb: var(--sq-cvd-danger-rgb);
+    --bs-danger-text-emphasis: var(--sq-cvd-danger);
+    --bs-danger-bg-subtle: color-mix(in srgb, var(--sq-cvd-danger) 15%, var(--bs-body-bg));
+    --bs-danger-border-subtle: color-mix(in srgb, var(--sq-cvd-danger) 40%, var(--bs-body-bg));
+
+    --bs-warning: var(--sq-cvd-warning);
+    --bs-warning-rgb: var(--sq-cvd-warning-rgb);
 }

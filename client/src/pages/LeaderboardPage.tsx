@@ -204,7 +204,7 @@ export default function LeaderboardPage() {
                                             <div className="d-flex flex-wrap align-items-center gap-2">
                                                 <span className="fw-semibold text-break">{entry.displayName}</span>
                                                 {entry.isCurrentUser && <span className="badge text-bg-primary">You</span>}
-                                                <span className="badge rounded-pill text-bg-light border">Level {entry.level}</span>
+                                                <span className="badge rounded-pill bg-body-tertiary text-body border">Level {entry.level}</span>
                                                 <Streak days={entry.currentStreak} />
                                             </div>
                                             {/* The bar shows the points compared to the student in first place */}
@@ -258,7 +258,7 @@ function PodiumStep({ entry, index }: { entry: LeaderboardEntry; index: number }
                     </p>
 
                     <p className="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-2 small">
-                        <span className="badge rounded-pill text-bg-light border">Level {entry.level}</span>
+                        <span className="badge rounded-pill bg-body-tertiary text-body border">Level {entry.level}</span>
                         <Streak days={entry.currentStreak} />
                     </p>
 
