@@ -37,6 +37,14 @@ export function updateQuiz(id: number, data: QuizFormRequest): Promise<void> {
     })
 }
 
+/* Publish (true) or unpublish (false). Only teachers and administrators, the API checks it. */
+export function setQuizVisibility(id: number, isPublic: boolean): Promise<void> {
+    return apiRequest<void>(`/api/quizzes/${id}/visibility`, {
+        method: 'PUT',
+        body: JSON.stringify({ isPublic }),
+    })
+}
+
 export function deleteQuiz(id: number): Promise<void> {
     return apiRequest<void>(`/api/quizzes/${id}`, { method: 'DELETE' })
 }

@@ -37,7 +37,8 @@ export default function CreateQuizPage() {
 
     return (
         <div className="mx-auto" style={{ maxWidth: 700 }}>
-            <h1 className="fw-bold mb-4">Create Quiz</h1>
+            <h1 className="landing-title mb-2">Create quiz</h1>
+            <p className="lead text-secondary mb-4">Give the quiz a title, a module and a difficulty. You add the questions next.</p>
 
             {modulesError && <div className="alert alert-warning" role="alert">{modulesError}</div>}
 

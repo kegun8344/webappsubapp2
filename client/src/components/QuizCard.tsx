@@ -4,15 +4,22 @@ import type { QuizListItem } from '../types/quiz'
 
 interface QuizCardProps {
     quiz: QuizListItem
+    /* Only students have progress: the score ring, the review button and "Start over" */
+    isStudent: boolean
     onDelete: (quiz: QuizListItem) => void
 }
 
 /* One quiz card, with the same markup and classes as Views/Quiz/Index.cshtml in Subapp 1 */
-export default function QuizCard({ quiz, onDelete }: QuizCardProps) {
+export default function QuizCard({ quiz, isStudent, onDelete }: QuizCardProps) {
     /* The ⋮ menu. Opened with React state, so no Bootstrap JavaScript is needed. */
     const [menuOpen, setMenuOpen] = useState(false)
 
     const hasQuestions = quiz.questionCount > 0
+
+    /* Teachers and admins never get "Start over" or the review button (the API sends 0 for them) */
+    const mistakeCount = isStudent ? quiz.mistakeCount : 0
+    const startText = mistakeCount > 0 ? 'Start over' : isStudent ? 'Start quiz' : 'Try it'
+    const missedText = `${mistakeCount} ${mistakeCount === 1 ? 'question' : 'questions'} you missed`
 
     /* The score ring in site.css reads the score from the --score CSS variable */
     const ringStyle = { '--score': quiz.bestScore ?? 0 } as CSSProperties
@@ -23,10 +30,11 @@ export default function QuizCard({ quiz, onDelete }: QuizCardProps) {
                 <div className="card-body d-flex flex-column">
                     {/* Visibility and tags. The API only sends tags the user may see. */}
                     <div className="d-flex flex-wrap align-items-center gap-1 mb-2">
+                        {/* An unpublished teacher quiz is a draft, a student's own quiz is always private */}
                         {quiz.isPublic ? (
                             <span className="badge bg-success">PUBLIC</span>
                         ) : (
-                            <span className="badge bg-secondary">PRIVATE</span>
+                            <span className="badge bg-secondary">{quiz.awardsPoints ? 'DRAFT' : 'PRIVATE'}</span>
                         )}
 
                     </div>
@@ -99,19 +107,43 @@ export default function QuizCard({ quiz, onDelete }: QuizCardProps) {
                     <p className="text-secondary small flex-grow-1 mb-0">{quiz.description}</p>
                 </div>
 
-                {/* Footer: start the quiz and the best score. A quiz without questions gets Edit and Delete instead. */}
+                {/*
+                    Footer: start or retake, the review button with the number of mistakes, and the best score
+                    (students) or the attempts and average (teachers and admins). A quiz without questions
+                    gets Edit and Delete instead.
+                */}
                 {(hasQuestions || quiz.canManage) && (
                     <div className="card-footer bg-transparent d-flex align-items-center justify-content-between gap-2 py-3">
                         <div className="d-flex flex-wrap-reverse align-items-center gap-2">
                             {hasQuestions ? (
-                                <Link
-                                    className="btn btn-primary d-inline-flex align-items-center gap-2"
-                                    to={`/quizzes/${quiz.id}/play`}
-                                    aria-label={`Start quiz ${quiz.title}`}
-                                >
-                                    <i className="bi bi-play-fill btn-icon icon-play" aria-hidden="true"></i>
-                                    Start quiz
-                                </Link>
+                                <>
+                                    <Link
+                                        className="btn btn-primary d-inline-flex align-items-center gap-2"
+                                        to={`/quizzes/${quiz.id}/play`}
+                                        aria-label={`${startText} ${quiz.title}`}
+                                    >
+                                        {/* "Start over" when there are mistakes to review, so the two buttons read as two choices */}
+                                        {mistakeCount > 0 ? (
+                                            <i className="bi bi-arrow-repeat btn-icon icon-restart" aria-hidden="true"></i>
+                                        ) : (
+                                            <i className="bi bi-play-fill btn-icon icon-play" aria-hidden="true"></i>
+                                        )}
+                                        {startText}
+                                    </Link>
+
+                                    {/* The number works like a notification. It goes straight into the mistakes from this quiz. */}
+                                    {mistakeCount > 0 && (
+                                        <Link
+                                            className="btn btn-outline-secondary d-inline-flex align-items-center gap-2"
+                                            to={`/review?quizId=${quiz.id}`}
+                                            title={`Review ${missedText} last time`}
+                                            aria-label={`Review ${missedText} in ${quiz.title}`}
+                                        >
+                                            <i className="bi bi-journal-check btn-icon icon-review" aria-hidden="true"></i>
+                                            <span className="fw-semibold" aria-hidden="true">{mistakeCount}</span>
+                                        </Link>
+                                    )}
+                                </>
                             ) : (
                                 <>
                                     <Link
@@ -135,8 +167,18 @@ export default function QuizCard({ quiz, onDelete }: QuizCardProps) {
                             )}
                         </div>
 
-                        {/* Best score: grey ring, green with a check mark at 100 % */}
-                        {hasQuestions &&
+                        {/* Teachers and admins: how students do on this quiz, where students see their ring */}
+                        {!isStudent && quiz.attempts !== null && (
+                            <span className="small text-secondary text-end">
+                                {quiz.attempts === 0
+                                    ? 'No attempts yet'
+                                    : `${quiz.attempts} ${quiz.attempts === 1 ? 'attempt' : 'attempts'} · avg ${quiz.averageScore ?? 0} %`}
+                            </span>
+                        )}
+
+                        {/* Best score: grey ring, green with a check mark at 100 %. Students only. */}
+                        {isStudent &&
+                            hasQuestions &&
                             (quiz.bestScore !== null ? (
                                 <div
                                     className={`score-ring${quiz.bestScore >= 100 ? ' is-aced' : ''}`}

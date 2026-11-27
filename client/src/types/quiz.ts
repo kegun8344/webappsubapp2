@@ -45,6 +45,11 @@ export interface QuizListItem {
     /* 0-100, null if the user has not taken the quiz */
     bestScore: number | null
     tags: Tag[]
+    /* Students: questions from this quiz waiting in "Review mistakes" (0 for others) */
+    mistakeCount: number
+    /* Teachers and admins: students' attempts and rounded average. null for students. */
+    attempts: number | null
+    averageScore: number | null
 }
 
 /* The filters on the quiz list. Missing values mean "no filter". */

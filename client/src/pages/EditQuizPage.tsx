@@ -9,7 +9,7 @@ import TagEditor from '../components/TagEditor'
 import { useAuth } from '../hooks/useAuth'
 import { ApiError } from '../services/apiClient'
 import { deleteQuestion } from '../services/questionService'
-import { getModuleOptions, getQuiz, getTags, updateQuiz } from '../services/quizService'
+import { getModuleOptions, getQuiz, getTags, setQuizVisibility, updateQuiz } from '../services/quizService'
 import type { ModuleOption, Question, QuizDetail, Tag } from '../types/quiz'
 import { toQuizRequest, type QuizFormValues } from '../utils/quizValidation'
 
@@ -44,6 +44,7 @@ export default function EditQuizPage() {
 
     const [questionToDelete, setQuestionToDelete] = useState<{ question: Question; number: number } | null>(null)
     const [deleting, setDeleting] = useState(false)
+    const [changingVisibility, setChangingVisibility] = useState(false)
 
     const isLoading = loaded.id !== quizId
 
@@ -131,6 +132,21 @@ export default function EditQuizPage() {
         setMessage(text)
     }
 
+    /* Publish or unpublish. The API refuses students and empty quizzes too. */
+    async function changeVisibility(makePublic: boolean) {
+        setChangingVisibility(true)
+        setActionError(null)
+        try {
+            await setQuizVisibility(quizId, makePublic)
+            await reload()
+            setMessage(makePublic ? 'Quiz published. Students can now see it.' : 'Quiz unpublished. It is now only visible to you.')
+        } catch (err) {
+            setActionError(err instanceof ApiError ? err.message : 'The visibility could not be changed. Please try again.')
+        } finally {
+            setChangingVisibility(false)
+        }
+    }
+
     async function confirmDeleteQuestion() {
         if (!questionToDelete) return
 
@@ -158,7 +174,7 @@ export default function EditQuizPage() {
                     Back to quizzes
                 </Link>
 
-                <h1 className="fw-bold mt-2 mb-4">Edit Quiz</h1>
+                <h1 className="landing-title mt-3 mb-4">Edit quiz</h1>
 
                 <ErrorAlert message={actionError} onClose={() => setActionError(null)} />
 
@@ -180,6 +196,53 @@ export default function EditQuizPage() {
                         />
                     </div>
                 </section>
+
+                {/*
+                    Visibility, only for teachers and administrators, and only on quizzes made by a teacher
+                    or administrator (awardsPoints). A student's own quiz is always private. The API checks both.
+                */}
+                {(hasRole('Teacher') || hasRole('Admin')) && quiz.awardsPoints && (
+                    <section className="card shadow-sm mb-5" aria-labelledby="visibility-heading">
+                        <div className="card-body p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                            <div>
+                                <h2 id="visibility-heading" className="h4 fw-bold mb-1">Visibility</h2>
+                                {quiz.isPublic ? (
+                                    <>
+                                        <span className="badge bg-success">PUBLIC</span>
+                                        <span className="text-secondary small ms-1">Students can see and take this quiz.</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="badge bg-secondary">DRAFT</span>
+                                        <span className="text-secondary small ms-1">Only you can see this quiz.</span>
+                                    </>
+                                )}
+                            </div>
+
+                            {quiz.isPublic ? (
+                                <button
+                                    type="button"
+                                    className="btn btn-outline-secondary"
+                                    disabled={changingVisibility}
+                                    onClick={() => void changeVisibility(false)}
+                                >
+                                    Unpublish
+                                </button>
+                            ) : (
+                                /* An empty quiz cannot be taken, so it cannot be published yet */
+                                <button
+                                    type="button"
+                                    className="btn btn-success"
+                                    disabled={changingVisibility || quiz.questions.length === 0}
+                                    title={quiz.questions.length === 0 ? 'Add at least one question first' : undefined}
+                                    onClick={() => void changeVisibility(true)}
+                                >
+                                    Publish
+                                </button>
+                            )}
+                        </div>
+                    </section>
+                )}
 
                 <section className="mt-5" aria-labelledby="questions-heading">
                     <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
