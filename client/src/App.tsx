@@ -13,6 +13,8 @@ import EditQuizPage from './pages/EditQuizPage'
 import QuestionFormPage from './pages/QuestionFormPage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import DashboardPage from './pages/DashboardPage'
+import ModulesPage from './pages/ModulesPage'
+import ModuleFormPage from './pages/ModuleFormPage'
 
 /* All pages and their addresses. New pages are added inside the Layout route. */
 export default function App() {
@@ -34,6 +36,10 @@ export default function App() {
                         <Route path="/quizzes/:quizId/questions/new" element={<RequireAuth><QuestionFormPage /></RequireAuth>} />
                         <Route path="/quizzes/:quizId/questions/:questionId/edit" element={<RequireAuth><QuestionFormPage /></RequireAuth>} />
                         <Route path="/leaderboard" element={<RequireAuth><LeaderboardPage /></RequireAuth>} />
+                        <Route path="/modules" element={<RequireAuth><ModulesPage /></RequireAuth>} />
+                        {/* Only teachers and administrators manage modules (the API checks the role too) */}
+                        <Route path="/modules/new" element={<RequireAuth roles={['Teacher', 'Admin']}><ModuleFormPage /></RequireAuth>} />
+                        <Route path="/modules/:id/edit" element={<RequireAuth roles={['Teacher', 'Admin']}><ModuleFormPage /></RequireAuth>} />
                         {/* Only students have a dashboard (the API also gives 403 to everyone else) */}
                         <Route path="/dashboard" element={<RequireAuth roles={['Student']}><DashboardPage /></RequireAuth>} />
 
