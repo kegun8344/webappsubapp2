@@ -42,5 +42,27 @@ namespace api.DAL
 
         /* The user's best score (0-100) on each quiz they have taken, by quiz ID */
         Task<Dictionary<int, int>?> GetBestScoresAsync(string userId);
+    
+
+        /* The latest attempts by students. ownerId: only on this teacher's quizzes, null: all quizzes that give points. */
+        Task<List<StudentAttempt>?> GetRecentStudentAttemptsAsync(string? ownerId, int count);
+
+        /* Attempts and average score by students on each quiz. ownerId: this teacher's quizzes, null: all point quizzes. */
+        Task<List<QuizStats>?> GetQuizStatsAsync(string? ownerId);
+
+        /* How many different students have taken the quizzes (same ownerId rule as above) */
+        Task<int?> CountStudentsReachedAsync(string? ownerId);
+
+        /* Numbers for the whole platform. Attempts are counted since sinceUtc. */
+        Task<PlatformCounts?> GetPlatformCountsAsync(DateTime sinceUtc);
+
+        /* The point quizzes students took most since sinceUtc */
+        Task<List<QuizStats>?> GetPopularQuizzesAsync(DateTime sinceUtc, int count);
+
+        /* Gives every quiz without a teacher to this teacher. Returns how many were moved, or null if it failed. */
+        Task<int?> MoveQuizzesWithoutTeacherAsync(string teacherId);
+
+        /* How students answered each question of the quiz, in the same order as on the edit page */
+        Task<List<QuestionAnalysis>?> GetQuestionAnalysisAsync(int quizId);
     }
 }

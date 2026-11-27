@@ -7,7 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
+using api.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,6 +70,25 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 }
 
                 return Task.CompletedTask;
+            },
+
+            /*
+             * A token lives for up to 2 hours, so it is checked against the database on every request,
+             * the same as the security stamp check in Subapp 1. A deleted user, or a user whose role
+             * was changed or who was locked by an administrator (new security stamp), is logged out.
+             */
+            OnTokenValidated = async context =>
+            {
+                var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+                var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+                var stamp = context.Principal?.FindFirstValue(AuthController.SecurityStampClaim);
+
+                var user = userId == null ? null : await userManager.FindByIdAsync(userId);
+
+                if (user == null || string.IsNullOrEmpty(stamp) || stamp != user.SecurityStamp)
+                {
+                    context.Fail("The login is no longer valid.");
+                }
             }
         };
     });

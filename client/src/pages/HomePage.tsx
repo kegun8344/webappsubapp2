@@ -1,6 +1,13 @@
-import type { CSSProperties } from 'react'
+import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
+import ErrorAlert from '../components/ErrorAlert'
+import LoadingSpinner from '../components/LoadingSpinner'
+import StaffHome from '../components/StaffHome'
+import StudentHome from '../components/StudentHome'
+import SuccessToast from '../components/SuccessToast'
 import { useAuth } from '../hooks/useAuth'
+import { getHome } from '../services/homeService'
+import type { Home } from '../types/home'
 
 /* The landing page animations wait a little longer for each element (same as --delay in Subapp 1) */
 function delay(seconds: number): CSSProperties {
@@ -20,7 +27,7 @@ function forRole(hasRole: (role: string) => boolean): { subtitle: string; shortc
         return {
             subtitle: 'Keep an eye on the platform and everything in it.',
             shortcuts: [
-                { icon: 'bi-shield-lock', title: 'Admin dashboard', text: 'Manage users and roles.', to: '/admin' },
+                { icon: 'bi-people', title: 'Users', text: 'Manage users and roles.', to: '/users' },
                 { icon: 'bi-collection', title: 'All quizzes', text: 'See and manage every quiz.', to: '/quizzes' },
                 { icon: 'bi-trophy', title: 'Leaderboard', text: 'See how the students rank.', to: '/leaderboard' },
             ],
@@ -30,7 +37,7 @@ function forRole(hasRole: (role: string) => boolean): { subtitle: string; shortc
         return {
             subtitle: 'Make quizzes for your students and follow how they do.',
             shortcuts: [
-                { icon: 'bi-plus-lg', title: 'Create a quiz', text: 'Start a new quiz that gives points.', to: '/quizzes/create' },
+                { icon: 'bi-plus-lg', title: 'Create a quiz', text: 'Start a new quiz that gives points.', to: '/quizzes/new' },
                 { icon: 'bi-collection', title: 'Your quizzes', text: 'Edit questions or check your quizzes.', to: '/quizzes?view=mine' },
                 { icon: 'bi-trophy', title: 'Leaderboard', text: 'See how the students rank.', to: '/leaderboard' },
             ],
@@ -54,34 +61,7 @@ export default function HomePage() {
     if (isLoading) return null
 
     if (user) {
-        const displayName = user.email.split('@')[0]
-        const { subtitle, shortcuts } = forRole(hasRole)
-
-        return (
-            <section aria-labelledby="welcome-heading">
-                <h1 id="welcome-heading" className="landing-title mb-2">Hi, {displayName}</h1>
-                <p className="lead text-secondary mb-5">{subtitle}</p>
-
-                <ul className="row g-3 list-unstyled mb-0">
-                    {shortcuts.map((shortcut) => (
-                        <li className="col-lg-4" key={shortcut.title}>
-                            <div className="card border-0 shadow-sm h-100 home-action">
-                                <div className="card-body d-flex align-items-center gap-3 p-4">
-                                    <span className="home-action-icon"><i className={`bi ${shortcut.icon}`} aria-hidden="true"></i></span>
-                                    <span className="flex-grow-1">
-                                        <Link className="home-action-title stretched-link" to={shortcut.to}>{shortcut.title}</Link>
-                                        <span className="d-block small text-secondary">{shortcut.text}</span>
-                                    </span>
-                                    <i className="bi bi-arrow-right home-action-arrow" aria-hidden="true"></i>
-                                </div>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-
-                {/* The streak, daily goal and quiz suggestions for students come here, from the points API */}
-            </section>
-        )
+        return <SignedInHome email={user.email} hasRole={hasRole} />
     }
 
     return (
@@ -216,6 +196,92 @@ export default function HomePage() {
                     </li>
                 </ol>
             </section>
+        </>
+    )
+}
+
+interface SignedInHomeProps {
+    email: string
+    hasRole: (role: string) => boolean
+}
+
+/*
+ * The signed-in Home page: the greeting and shortcuts for the role, and below them
+ * the student's streak and suggestions, or the teacher's or administrator's overview (from GET /api/home).
+ */
+function SignedInHome({ email, hasRole }: SignedInHomeProps) {
+    const [home, setHome] = useState<Home | null>(null)
+    const [error, setError] = useState<string | null>(null)
+    const [message, setMessage] = useState<string | null>(null)
+
+    /* Changing reloadCount loads the page again, e.g. after "Move all" */
+    const [reloadCount, setReloadCount] = useState(0)
+
+    useEffect(() => {
+        let active = true
+
+        getHome()
+            .then((result) => {
+                if (active) setHome(result)
+            })
+            .catch(() => {
+                if (active) setError(hasRole('Student') ? 'Your streak and quiz suggestions could not be loaded. Please try again later.' : 'The overview could not be loaded. Please try again later.')
+            })
+
+        return () => {
+            active = false
+        }
+    }, [hasRole, reloadCount])
+
+    const closeMessage = useCallback(() => setMessage(null), [])
+
+    const onQuizzesMoved = useCallback((text: string) => {
+        setMessage(text)
+        setReloadCount((count) => count + 1)
+    }, [])
+
+    const displayName = email.split('@')[0]
+    const { subtitle, shortcuts } = forRole(hasRole)
+
+    return (
+        <>
+            <SuccessToast message={message} onClose={closeMessage} />
+
+            <section aria-labelledby="welcome-heading">
+                <h1 id="welcome-heading" className="landing-title mb-2">Hi, {displayName}</h1>
+                <p className="lead text-secondary mb-5">{subtitle}</p>
+
+                <ul className="row g-3 list-unstyled mb-0">
+                    {shortcuts.map((shortcut) => (
+                        <li className="col-lg-4" key={shortcut.title}>
+                            <div className="card border-0 shadow-sm h-100 home-action">
+                                <div className="card-body d-flex align-items-center gap-3 p-4">
+                                    <span className="home-action-icon"><i className={`bi ${shortcut.icon}`} aria-hidden="true"></i></span>
+                                    <span className="flex-grow-1">
+                                        <Link className="home-action-title stretched-link" to={shortcut.to}>{shortcut.title}</Link>
+                                        <span className="d-block small text-secondary">{shortcut.text}</span>
+                                    </span>
+                                    <i className="bi bi-arrow-right home-action-arrow" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </section>
+
+            {error ? (
+                <div className="mt-4">
+                    <ErrorAlert message={error} />
+                </div>
+            ) : !home ? (
+                <LoadingSpinner />
+            ) : home.student ? (
+                <div className="mt-5">
+                    <StudentHome home={home.student} />
+                </div>
+            ) : home.staff ? (
+                <StaffHome home={home.staff} isAdmin={home.role === 'Admin'} onQuizzesMoved={onQuizzesMoved} />
+            ) : null}
         </>
     )
 }

@@ -26,5 +26,15 @@ namespace api.DAL
          * Returns the number of private quizzes that were deleted, or null if it failed.
          */
         Task<int?> DeleteWithQuizzesAsync(string userId);
+    
+
+        /* The newest students and teachers (not administrators), newest first */
+        Task<List<NewUser>?> GetNewUsersAsync(int count);
+
+        /* Accounts that cannot log in right now (locked by an administrator or after too many wrong passwords) */
+        Task<List<LockedUser>?> GetLockedUsersAsync();
+
+        /* All teachers, sorted by email */
+        Task<List<TeacherOption>?> GetTeachersAsync();
     }
 }
