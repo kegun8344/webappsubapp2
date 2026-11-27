@@ -28,6 +28,9 @@ namespace api.DTOs
         /* True if the signed-in user made the quiz */
         public bool IsMine { get; set; }
 
+        /* The part of the creator's email before @, null if the account has been deleted */
+        public string? CreatedByName { get; set; }
+
         /* True if the user may edit and delete it. The React app uses this to show or hide the buttons. */
         public bool CanManage { get; set; }
 
@@ -50,6 +53,7 @@ namespace api.DTOs
                 AwardsPoints = quiz.AwardsPoints,
                 QuestionCount = quiz.Questions.Count,
                 IsMine = userId != null && quiz.CreatedByUserId == userId,
+                CreatedByName = quiz.CreatedBy == null ? null : DisplayNames.FromEmail(quiz.CreatedBy.Email),
                 CanManage = QuizRules.CanManage(quiz, userId, isAdmin),
                 BestScore = bestScore,
                 Tags = VisibleTags(quiz, userId, isAdmin)
