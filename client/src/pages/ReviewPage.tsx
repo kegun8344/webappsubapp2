@@ -204,7 +204,8 @@ export default function ReviewPage() {
     }
 
     return (
-        <>
+        /* The same narrow width as the quiz player */
+        <div className="page-narrow">
             {/* Review of one quiz: a way back, and a way to clear the mistakes without answering them */}
             {quizId && (
                 <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
@@ -234,6 +235,6 @@ export default function ReviewPage() {
             />
 
             {clearDialog}
-        </>
+        </div>
     )
 }

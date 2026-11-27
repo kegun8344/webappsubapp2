@@ -13,6 +13,10 @@ namespace api.DTOs
         [StringLength(500, MinimumLength = 1, ErrorMessage = "The question must be between 1 and 500 characters.")]
         public string Text { get; set; } = string.Empty;
 
+        /* Optional scenario, code example or explanation shown above the question */
+        [StringLength(1000, ErrorMessage = "Context can be at most 1000 characters.")]
+        public string? Context { get; set; }
+
         [Required]
         public List<string?> Answers { get; set; } = new();
 

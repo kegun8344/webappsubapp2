@@ -91,6 +91,7 @@ namespace api.Controllers
             {
                 QuizId = quiz.Id,
                 Text = dto.Text.Trim(),
+                Context = CleanContext(dto.Context),
                 AnswerOptions = BuildOptions(dto)
             };
 
@@ -148,6 +149,7 @@ namespace api.Controllers
             }
 
             question.Text = dto.Text.Trim();
+            question.Context = CleanContext(dto.Context);
 
             /* The old options are removed and the new ones saved, in one call */
             if (!await questionRepository.ReplaceAnswersAsync(question, BuildOptions(dto)))
@@ -225,6 +227,10 @@ namespace api.Controllers
                 })
                 .ToList();
         }
+
+        /* Empty or whitespace-only context is saved as null */
+        private static string? CleanContext(string? context) =>
+            string.IsNullOrWhiteSpace(context) ? null : context.Trim();
 
         private bool CanManage(Quiz quiz)
         {

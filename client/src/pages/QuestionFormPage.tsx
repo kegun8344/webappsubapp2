@@ -6,7 +6,7 @@ import { ApiError } from '../services/apiClient'
 import { createQuestion, updateQuestion } from '../services/questionService'
 import { getQuiz } from '../services/quizService'
 import type { Question, QuizDetail } from '../types/quiz'
-import { hasQuestionErrors, MAX_ANSWERS, MIN_ANSWERS, validateQuestion, type QuestionFormErrors } from '../utils/quizValidation'
+import { hasQuestionErrors, MAX_ANSWERS, MAX_CONTEXT, MIN_ANSWERS, validateContext, validateQuestion, type QuestionFormErrors } from '../utils/quizValidation'
 
 interface LoadedQuiz {
     id: number | null
@@ -98,6 +98,8 @@ function QuestionForm({ quiz, question }: QuestionFormProps) {
     const startAnswers = question ? question.options.map((option) => option.text) : ['', '']
     const startCorrect = question ? question.options.findIndex((option) => option.isCorrect) : -1
 
+    const [context, setContext] = useState(question?.context ?? '')
+    const [contextError, setContextError] = useState<string | undefined>(undefined)
     const [text, setText] = useState(question?.text ?? '')
     const [answers, setAnswers] = useState<AnswerRow[]>(startAnswers.map((answer, index) => ({ key: index, text: answer })))
     const [correctIndex, setCorrectIndex] = useState<number | null>(startCorrect >= 0 ? startCorrect : null)
@@ -147,10 +149,18 @@ function QuestionForm({ quiz, question }: QuestionFormProps) {
 
         const texts = answers.map((row) => row.text)
         const found = validateQuestion(text, texts, correctIndex)
+        const foundContext = validateContext(context)
         setErrors(found)
-        if (hasQuestionErrors(found) || correctIndex === null) return
+        setContextError(foundContext)
+        if (hasQuestionErrors(found) || foundContext || correctIndex === null) return
 
-        const body = { text: text.trim(), answers: texts.map((answer) => answer.trim()), correctAnswerIndex: correctIndex }
+        const body = {
+            text: text.trim(),
+            /* Empty context is sent as null, the server does the same */
+            context: context.trim() || null,
+            answers: texts.map((answer) => answer.trim()),
+            correctAnswerIndex: correctIndex,
+        }
 
         setSubmitting(true)
         try {
@@ -163,6 +173,7 @@ function QuestionForm({ quiz, question }: QuestionFormProps) {
         } catch (err) {
             if (err instanceof ApiError) {
                 /* The same rules are checked on the server (QuestionRules) */
+                setContextError(err.fieldErrors.context?.[0])
                 setErrors((current) => ({
                     ...current,
                     text: err.fieldErrors.text?.[0],
@@ -184,13 +195,33 @@ function QuestionForm({ quiz, question }: QuestionFormProps) {
                 Back to quiz
             </Link>
 
-            <h1 className="fw-bold mt-2 mb-1">{isEdit ? 'Edit question' : 'Add question'}</h1>
+            <h1 className="landing-title mt-3 mb-2">{isEdit ? 'Edit question' : 'Add question'}</h1>
             <p className="text-secondary mb-4">
                 Quiz: <strong>{quiz.title}</strong>
             </p>
 
             <form onSubmit={handleSubmit} noValidate>
                 {serverError && <div className="alert alert-danger" role="alert">{serverError}</div>}
+
+                {/* Optional context shown above the question when the quiz is taken */}
+                <div className="mb-3">
+                    <label htmlFor="question-context" className="form-label fw-semibold">Context (optional)</label>
+                    <textarea
+                        id="question-context"
+                        className={`form-control${contextError ? ' is-invalid' : ''}`}
+                        rows={3}
+                        maxLength={MAX_CONTEXT}
+                        value={context}
+                        aria-invalid={Boolean(contextError)}
+                        aria-describedby={contextError ? 'context-help context-error' : 'context-help'}
+                        onChange={(event) => {
+                            setContext(event.target.value)
+                            setContextError(undefined)
+                        }}
+                    />
+                    <div id="context-help" className="form-text">A scenario, code example or explanation shown above the question.</div>
+                    {contextError && <div id="context-error" className="invalid-feedback">{contextError}</div>}
+                </div>
 
                 <div className="mb-4">
                     <label htmlFor="question-text" className="form-label fw-semibold">Question</label>

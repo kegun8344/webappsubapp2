@@ -73,6 +73,13 @@ export function validateQuestion(text: string, answers: string[], correctAnswerI
     return errors
 }
 
+/* The optional context above a question, max 1000 characters like QuestionFormDto */
+export const MAX_CONTEXT = 1000
+
+export function validateContext(context: string): string | undefined {
+    return context.trim().length > MAX_CONTEXT ? `Context can be at most ${MAX_CONTEXT} characters.` : undefined
+}
+
 export function hasQuestionErrors(errors: QuestionFormErrors): boolean {
     return Boolean(errors.text || errors.answers || errors.correctAnswerIndex || errors.answerFields.some(Boolean))
 }

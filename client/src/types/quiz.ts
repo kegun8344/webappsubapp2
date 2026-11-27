@@ -77,6 +77,8 @@ export interface AnswerOption {
 export interface Question {
     id: number
     text: string
+    /* Optional scenario or code example shown above the question */
+    context: string | null
     options: AnswerOption[]
 }
 
@@ -105,6 +107,8 @@ export interface QuizFormRequest {
 /* The body when adding or changing a question (QuestionFormDto) */
 export interface QuestionFormRequest {
     text: string
+    /* null when there is no context */
+    context: string | null
     answers: string[]
     /* Position (starting at 0) of the correct answer */
     correctAnswerIndex: number

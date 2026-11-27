@@ -65,6 +65,7 @@ namespace api.Controllers
                     {
                         QuestionId = question.Id,
                         Text = question.Text,
+                        Context = question.Context,
                         Options = question.AnswerOptions
                             .OrderBy(option => option.Id)
                             .Select(option => new PlayOptionDto { Id = option.Id, Text = option.Text })
