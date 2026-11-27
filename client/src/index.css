@@ -1371,7 +1371,7 @@ html:not(.same-page) main {
 
 /*
  * Reduce motion, chosen on the Settings page (the @media rules above follow the system setting).
- * Animations still run, but finish at once, so everything ends up in its final state and
+ * Animations still run, but start and finish at once, so everything ends up in its final state and
  * scripts that wait for animationend (the toast messages in site.js) keep working.
  */
 [data-motion="reduce"] *,
@@ -1379,7 +1379,9 @@ html:not(.same-page) main {
 [data-motion="reduce"] *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
 }
 

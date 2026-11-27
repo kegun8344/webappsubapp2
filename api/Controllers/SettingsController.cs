@@ -18,14 +18,19 @@ namespace api.Controllers
         private readonly ISettingsRepository settingsRepository;
         private readonly IUserRepository userRepository;
         private readonly UserManager<ApplicationUser> userManager;
+        private readonly IAuthTokenService authTokenService;
         private readonly ILogger<SettingsController> logger;
 
+        /* Administrator accounts are protected: their password cannot be changed and they cannot be deleted here */
+        private const string AdminRole = "Admin";
+
         public SettingsController(ISettingsRepository settingsRepo, IUserRepository userRepo,
-            UserManager<ApplicationUser> users, ILogger<SettingsController> settingsLogger)
+            UserManager<ApplicationUser> users, IAuthTokenService tokens, ILogger<SettingsController> settingsLogger)
         {
             settingsRepository = settingsRepo;
             userRepository = userRepo;
             userManager = users;
+            authTokenService = tokens;
             logger = settingsLogger;
         }
 
@@ -71,6 +76,13 @@ namespace api.Controllers
             var user = await userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
+            /* Checked on the server too, so the protection does not depend on React hiding the form */
+            if (await userManager.IsInRoleAsync(user, AdminRole))
+            {
+                logger.LogWarning("Administrator {UserId} tried to change the password, which is not allowed.", user.Id);
+                return Problem("Administrator passwords cannot be changed here.", statusCode: StatusCodes.Status403Forbidden);
+            }
+
             var result = await userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
             if (!result.Succeeded)
             {
@@ -83,6 +95,12 @@ namespace api.Controllers
                     user.Id, string.Join(", ", result.Errors.Select(e => e.Code)));
                 return ValidationProblem(ModelState);
             }
+
+            /*
+             * Changing the password gives the user a new security stamp, and Program.cs refuses tokens with the old one.
+             * A new token keeps the user signed in here, while other devices are logged out (same as RefreshSignInAsync in Subapp 1).
+             */
+            await authTokenService.SignInAsync(user, HttpContext);
 
             logger.LogInformation("User {UserId} changed their password.", user.Id);
             return NoContent();
@@ -149,7 +167,7 @@ namespace api.Controllers
 
             return new DeleteAccountInfoDto
             {
-                BlockReason = roles.Contains("Admin") ? "Administrator accounts cannot be deleted." : null,
+                BlockReason = roles.Contains(AdminRole) ? "Administrator accounts cannot be deleted." : null,
                 PrivateQuizzes = counts.PrivateQuizzes,
                 PublicQuizzes = counts.PublicQuizzes,
                 Attempts = counts.Attempts,

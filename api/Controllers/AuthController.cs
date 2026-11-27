@@ -4,10 +4,6 @@ using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace api.Controllers
 {
@@ -22,26 +18,20 @@ namespace api.Controllers
         /* Everyone who signs up becomes a student. Only an administrator can give the Teacher role. */
         private const string DefaultRole = "Student";
 
-        /*
-         * The user's security stamp at login. Identity changes the stamp when an administrator
-         * changes the role or locks the account, and Program.cs then refuses the old token.
-         */
-        public const string SecurityStampClaim = "security_stamp";
-
         private readonly UserManager<ApplicationUser> userManager;
         private readonly SignInManager<ApplicationUser> signInManager;
-        private readonly IConfiguration configuration;
+        private readonly IAuthTokenService authTokenService;
         private readonly ILogger<AuthController> logger;
 
         public AuthController(
             UserManager<ApplicationUser> um,
             SignInManager<ApplicationUser> sm,
-            IConfiguration config,
+            IAuthTokenService tokens,
             ILogger<AuthController> log)
         {
             userManager = um;
             signInManager = sm;
-            configuration = config;
+            authTokenService = tokens;
             logger = log;
         }
 
@@ -84,7 +74,7 @@ namespace api.Controllers
             logger.LogInformation("User {Email} registered with role {Role}.", dto.Email, DefaultRole);
 
             /* Signed in straight away, same as in Subapp 1 */
-            return Ok(await CreateResponseAsync(user));
+            return Ok(await authTokenService.SignInAsync(user, HttpContext));
         }
 
         // POST: /api/auth/login
@@ -118,7 +108,7 @@ namespace api.Controllers
 
             logger.LogInformation("User {Email} logged in.", dto.Email);
 
-            return Ok(await CreateResponseAsync(user));
+            return Ok(await authTokenService.SignInAsync(user, HttpContext));
         }
 
         // POST: /api/auth/logout
@@ -148,56 +138,7 @@ namespace api.Controllers
 
             var roles = await userManager.GetRolesAsync(user);
 
-            return Ok(ToUserDto(user, roles));
-        }
-
-        /* Makes a signed token with the user's id, email and roles */
-        private async Task<AuthResponseDto> CreateResponseAsync(ApplicationUser user)
-        {
-            var roles = await userManager.GetRolesAsync(user);
-
-            var claims = new List<Claim>
-            {
-                new(ClaimTypes.NameIdentifier, user.Id),
-                new(ClaimTypes.Email, user.Email ?? ""),
-                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new(SecurityStampClaim, user.SecurityStamp ?? "")
-            };
-
-            /* [Authorize(Roles = "Teacher")] reads these */
-            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
-
-            var expiresAt = DateTime.UtcNow.AddMinutes(configuration.GetValue("Jwt:ExpiresInMinutes", 120));
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
-
-            var token = new JwtSecurityToken(
-                issuer: configuration["Jwt:Issuer"],
-                audience: configuration["Jwt:Audience"],
-                claims: claims,
-                expires: expiresAt,
-                signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
-
-            Response.Cookies.Append(
-                AuthCookie.Name,
-                new JwtSecurityTokenHandler().WriteToken(token),
-                AuthCookie.Options(Request, expiresAt));
-
-            /* The token itself is never in the answer, so JavaScript never sees it */
-            return new AuthResponseDto
-            {
-                ExpiresAt = expiresAt,
-                User = ToUserDto(user, roles)
-            };
-        }
-
-        private static UserDto ToUserDto(ApplicationUser user, IList<string> roles)
-        {
-            return new UserDto
-            {
-                Id = user.Id,
-                Email = user.Email ?? "",
-                Roles = roles.ToList()
-            };
+            return Ok(AuthTokenService.ToUserDto(user, roles));
         }
     }
 }

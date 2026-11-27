@@ -58,7 +58,8 @@ export default function App() {
                         <Route path="/quizzes/:id/analysis" element={<RequireAuth roles={['Teacher', 'Admin']}><QuizAnalysisPage /></RequireAuth>} />
 
                         <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
-                        <Route path="/settings/delete" element={<RequireAuth><DeleteAccountPage /></RequireAuth>} />
+                        {/* Administrator accounts are protected and cannot be deleted (the API refuses it too) */}
+                        <Route path="/settings/delete" element={<RequireAuth roles={['Student', 'Teacher']}><DeleteAccountPage /></RequireAuth>} />
                         <Route path="*" element={<NotFoundPage />} />
                     </Route>
                 </Routes>

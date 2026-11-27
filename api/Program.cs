@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
-using api.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,7 +80,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             {
                 var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
                 var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
-                var stamp = context.Principal?.FindFirstValue(AuthController.SecurityStampClaim);
+                var stamp = context.Principal?.FindFirstValue(AuthTokenService.SecurityStampClaim);
 
                 var user = userId == null ? null : await userManager.FindByIdAsync(userId);
 
@@ -99,6 +98,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IPointService, PointService>();
 builder.Services.AddScoped<IBadgeService, BadgeService>();
+
+/* Makes the login token and cookie (AuthController and SettingsController) */
+builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
 
 /* Data access layer: the same repositories as Subapp 1, so the controllers never use the database directly */
 builder.Services.AddScoped<IQuizRepository, QuizRepository>();

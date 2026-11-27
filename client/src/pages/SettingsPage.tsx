@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import ErrorAlert from '../components/ErrorAlert'
 import SuccessToast from '../components/SuccessToast'
+import { useAuth } from '../hooks/useAuth'
 import { useSettings } from '../hooks/useSettings'
 import { ApiError } from '../services/apiClient'
 import * as settingsService from '../services/settingsService'
@@ -18,32 +19,59 @@ const colorVisionOptions: { value: ColorVisionMode; text: string }[] = [
 /* Settings page, same layout as Settings/Index in Subapp 1 */
 export default function SettingsPage() {
     const { settings } = useSettings()
+    const { hasRole } = useAuth()
     const [message, setMessage] = useState<string | null>(null)
+
+    /* Administrator accounts are protected: no password change and no delete (the API refuses both too) */
+    const isAdmin = hasRole('Admin')
 
     return (
         <div className="mx-auto py-4" style={{ maxWidth: 700 }}>
             <SuccessToast message={message} onClose={() => setMessage(null)} />
 
-            <h1 className="fw-bold mb-4">Settings</h1>
+            {/* Same heading style as the other pages (Settings/Index in Subapp 1) */}
+            <h1 className="landing-title mb-2">Settings</h1>
+            <p className="lead text-secondary mb-4">{isAdmin ? 'Your colours and motion.' : 'Your password, colours and motion.'}</p>
 
             {/* key: the form starts again with the saved values once they have loaded */}
             <AppearanceCard key={JSON.stringify(settings)} initial={settings} onSaved={setMessage} />
-            <PasswordCard onSaved={setMessage} />
-
-            {/* Delete account. Only a link here: the delete page explains what happens and asks for the password. */}
-            <section className="card border-danger-subtle shadow-sm" aria-labelledby="delete-heading">
-                <div className="card-body p-4">
-                    <h2 id="delete-heading" className="h5 fw-bold text-danger mb-2">
-                        <i className="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>Delete account
-                    </h2>
-                    <p className="text-secondary mb-3">
-                        Your private quizzes, attempts and points are deleted. Public quizzes you made stay available for others.
-                        This cannot be undone.
-                    </p>
-                    <Link to="/settings/delete" className="btn btn-outline-danger">Delete my account</Link>
-                </div>
-            </section>
+            {isAdmin ? (
+                <section className="card border-0 shadow-sm" aria-labelledby="protected-heading">
+                    <div className="card-body p-4 d-flex gap-3">
+                        <i className="bi bi-shield-lock fs-4 text-primary" aria-hidden="true"></i>
+                        <div>
+                            <h2 id="protected-heading" className="h5 fw-bold mb-1">Protected account</h2>
+                            <p className="text-secondary mb-0">
+                                Administrator accounts are protected. The password cannot be changed and the account cannot be deleted here.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            ) : (
+                <>
+                    <PasswordCard onSaved={setMessage} />
+                    <DeleteAccountCard />
+                </>
+            )}
         </div>
+    )
+}
+
+/* Delete account. Only a link here: the delete page explains what happens and asks for the password. */
+function DeleteAccountCard() {
+    return (
+        <section className="card border-danger-subtle shadow-sm" aria-labelledby="delete-heading">
+            <div className="card-body p-4">
+                <h2 id="delete-heading" className="h5 fw-bold text-danger mb-2">
+                    <i className="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>Delete account
+                </h2>
+                <p className="text-secondary mb-3">
+                    Your private quizzes, attempts and points are deleted. Public quizzes you made stay available for others.
+                    This cannot be undone.
+                </p>
+                <Link to="/settings/delete" className="btn btn-outline-danger">Delete my account</Link>
+            </div>
+        </section>
     )
 }
 
