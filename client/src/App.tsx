@@ -22,6 +22,7 @@ import UsersPage from './pages/UsersPage'
 import DeleteUserPage from './pages/DeleteUserPage'
 import MoveQuizPage from './pages/MoveQuizPage'
 import QuizAnalysisPage from './pages/QuizAnalysisPage'
+import ReviewPage from './pages/ReviewPage'
 
 /* All pages and their addresses. New pages are added inside the Layout route. */
 export default function App() {
@@ -39,6 +40,8 @@ export default function App() {
                         {/* Pages that need a signed-in user. RequireAuth sends visitors to the login page. */}
                         <Route path="/quizzes" element={<RequireAuth><QuizzesPage /></RequireAuth>} />
                         <Route path="/quizzes/:id/play" element={<RequireAuth><PlayQuizPage /></RequireAuth>} />
+                        {/* Review mistakes, from all quizzes or one (?quizId=3) */}
+                        <Route path="/review" element={<RequireAuth><ReviewPage /></RequireAuth>} />
                         <Route path="/quizzes/new" element={<RequireAuth><CreateQuizPage /></RequireAuth>} />
                         <Route path="/quizzes/:id/edit" element={<RequireAuth><EditQuizPage /></RequireAuth>} />
                         <Route path="/quizzes/:quizId/questions/new" element={<RequireAuth><QuestionFormPage /></RequireAuth>} />

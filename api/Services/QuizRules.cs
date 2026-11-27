@@ -34,10 +34,26 @@ namespace api.Services
                 || (userId != null && quiz.CreatedByUserId == userId);
         }
 
-        /* Teacher and administrator quizzes are public and give points. Student quizzes are private practice. */
+        /* Teacher and administrator quizzes give points and can be published. Student quizzes are private practice. */
         public static bool IsOfficialAuthor(bool isTeacher, bool isAdmin)
         {
             return isTeacher || isAdmin;
+        }
+
+        /*
+         * Who may publish or unpublish a quiz: only teachers and administrators (the role of the user),
+         * and only quizzes made by a teacher or administrator (AwardsPoints). A student's own quiz is
+         * personal practice, so it is never published, not even by an administrator.
+         */
+        public static bool CanChangeVisibility(bool quizAwardsPoints, bool isTeacher, bool isAdmin)
+        {
+            return IsOfficialAuthor(isTeacher, isAdmin) && quizAwardsPoints;
+        }
+
+        /* An empty quiz cannot be taken, so it cannot be published yet. Unpublishing is always fine. */
+        public static bool CanPublishWithQuestions(bool makePublic, int questionCount)
+        {
+            return !makePublic || questionCount > 0;
         }
 
         /* Unknown values fall back to "all", so a hand-made request cannot break the list */

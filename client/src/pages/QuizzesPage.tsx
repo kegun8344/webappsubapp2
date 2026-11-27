@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import ConfirmDialog from '../components/ConfirmDialog'
 import ErrorAlert from '../components/ErrorAlert'
 import LoadingSpinner from '../components/LoadingSpinner'
 import QuizCard from '../components/QuizCard'
+import { useAuth } from '../hooks/useAuth'
 import { ApiError } from '../services/apiClient'
 import { deleteQuiz, getModuleOptions, getQuizzes, getTags } from '../services/quizService'
 import { difficultyLevels, type Difficulty, type ModuleOption, type QuizFilters, type QuizListItem, type QuizView, type Tag } from '../types/quiz'
@@ -68,7 +69,13 @@ export default function QuizzesPage() {
     const [quizToDelete, setQuizToDelete] = useState<QuizListItem | null>(null)
     const [deleting, setDeleting] = useState(false)
     const [actionError, setActionError] = useState<string | null>(null)
-    const [successMessage, setSuccessMessage] = useState<string | null>(null)
+    /* A message from the page that sent the user here, e.g. "3 mistakes cleared." from the review page */
+    const location = useLocation()
+    const [successMessage, setSuccessMessage] = useState<string | null>((location.state as { message?: string } | null)?.message ?? null)
+
+    /* Only students have progress on the cards (ring, review button, "Start over") */
+    const { hasRole } = useAuth()
+    const isStudent = hasRole('Student')
 
     /* Loading means: the list on screen belongs to other filters than the ones in the address */
     const isLoading = loaded.key !== queryKey
@@ -336,7 +343,7 @@ export default function QuizzesPage() {
             ) : (
                 <ul className="row g-3 list-unstyled filter-results">
                     {quizzes.map((quiz) => (
-                        <QuizCard key={quiz.id} quiz={quiz} onDelete={setQuizToDelete} />
+                        <QuizCard key={quiz.id} quiz={quiz} isStudent={isStudent} onDelete={setQuizToDelete} />
                     ))}
                 </ul>
             )}

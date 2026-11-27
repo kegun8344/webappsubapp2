@@ -39,6 +39,15 @@ namespace api.DTOs
 
         public List<TagDto> Tags { get; set; } = new();
 
+        /* Students: how many questions from this quiz are waiting in "Review mistakes" (0 for others) */
+        public int MistakeCount { get; set; }
+
+        /* Teachers and administrators: how students do on the quiz. null for students. */
+        public int? Attempts { get; set; }
+
+        /* Rounded average score of the students' attempts. null if there are none, or for students. */
+        public int? AverageScore { get; set; }
+
         public static QuizListItemDto FromQuiz(Quiz quiz, string? userId, bool isAdmin, int? bestScore)
         {
             return new QuizListItemDto
