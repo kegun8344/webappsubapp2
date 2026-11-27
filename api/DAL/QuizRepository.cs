@@ -299,5 +299,236 @@ namespace api.DAL
                 return null;
             }
         }
+    
+
+        /* The user IDs that have the Student role. Teachers and admins trying a quiz do not count in the numbers. */
+        private IQueryable<string> StudentIds()
+        {
+            return UserIdsInRole("Student");
+        }
+
+        private IQueryable<string> UserIdsInRole(string roleName)
+        {
+            return from userRole in _db.UserRoles
+                   join role in _db.Roles on userRole.RoleId equals role.Id
+                   where role.Name == roleName
+                   select userRole.UserId;
+        }
+
+        /* A teacher's own quizzes, or all quizzes that give points when ownerId is null (administrators) */
+        private IQueryable<Quiz> OwnedQuizzes(string? ownerId)
+        {
+            return ownerId == null
+                ? _db.Quizzes.Where(q => q.AwardsPoints)
+                : _db.Quizzes.Where(q => q.CreatedByUserId == ownerId);
+        }
+
+        public async Task<List<StudentAttempt>?> GetRecentStudentAttemptsAsync(string? ownerId, int count)
+        {
+            try
+            {
+                var studentIds = StudentIds();
+
+                return await _db.QuizAttempts
+                    .AsNoTracking()
+                    .Where(a => studentIds.Contains(a.UserId) &&
+                                (ownerId == null ? a.Quiz.AwardsPoints : a.Quiz.CreatedByUserId == ownerId))
+                    .OrderByDescending(a => a.CompletedAt)
+                    .Take(count)
+                    .Select(a => new StudentAttempt(
+                        a.User.UserName ?? string.Empty,
+                        a.QuizId,
+                        a.Quiz.Title,
+                        a.Score,
+                        a.CompletedAt))
+                    .ToListAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "[QuizRepository] Could not load the recent attempts for owner {OwnerId}.", ownerId);
+                return null;
+            }
+        }
+
+        public async Task<List<QuizStats>?> GetQuizStatsAsync(string? ownerId)
+        {
+            try
+            {
+                var studentIds = StudentIds();
+
+                return await OwnedQuizzes(ownerId)
+                    .AsNoTracking()
+                    .OrderBy(q => q.Title)
+                    .Select(q => new QuizStats(
+                        q.Id,
+                        q.Title,
+                        q.Module.Name,
+                        q.Questions.Count,
+                        q.Attempts.Count(a => studentIds.Contains(a.UserId)),
+                        q.Attempts.Where(a => studentIds.Contains(a.UserId)).Average(a => (double?)a.Score)))
+                    .ToListAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "[QuizRepository] Could not load quiz stats for owner {OwnerId}.", ownerId);
+                return null;
+            }
+        }
+
+        public async Task<int?> CountStudentsReachedAsync(string? ownerId)
+        {
+            try
+            {
+                var studentIds = StudentIds();
+
+                return await _db.QuizAttempts
+                    .AsNoTracking()
+                    .Where(a => studentIds.Contains(a.UserId) &&
+                                (ownerId == null ? a.Quiz.AwardsPoints : a.Quiz.CreatedByUserId == ownerId))
+                    .Select(a => a.UserId)
+                    .Distinct()
+                    .CountAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "[QuizRepository] Could not count the students for owner {OwnerId}.", ownerId);
+                return null;
+            }
+        }
+
+        public async Task<PlatformCounts?> GetPlatformCountsAsync(DateTime sinceUtc)
+        {
+            try
+            {
+                var studentIds = StudentIds();
+
+                return new PlatformCounts(
+                    await UserIdsInRole("Student").CountAsync(),
+                    await UserIdsInRole("Teacher").CountAsync(),
+                    await _db.Quizzes.CountAsync(q => q.AwardsPoints),
+                    await _db.Quizzes.CountAsync(q => !q.AwardsPoints),
+                    await _db.QuizAttempts.CountAsync(a => a.CompletedAt >= sinceUtc && studentIds.Contains(a.UserId)));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "[QuizRepository] Could not load the platform counts.");
+                return null;
+            }
+        }
+
+        public async Task<List<QuizStats>?> GetPopularQuizzesAsync(DateTime sinceUtc, int count)
+        {
+            try
+            {
+                var studentIds = StudentIds();
+
+                /* Anonymous type first, so the database can filter and sort on the counts */
+                var rows = await _db.Quizzes
+                    .AsNoTracking()
+                    .Where(q => q.AwardsPoints)
+                    .Select(q => new
+                    {
+                        q.Id,
+                        q.Title,
+                        ModuleName = q.Module.Name,
+                        QuestionCount = q.Questions.Count,
+                        Attempts = q.Attempts.Count(a => a.CompletedAt >= sinceUtc && studentIds.Contains(a.UserId)),
+                        Average = q.Attempts
+                            .Where(a => a.CompletedAt >= sinceUtc && studentIds.Contains(a.UserId))
+                            .Average(a => (double?)a.Score)
+                    })
+                    .Where(row => row.Attempts > 0)
+                    .OrderByDescending(row => row.Attempts)
+                    .ThenBy(row => row.Title)
+                    .Take(count)
+                    .ToListAsync();
+
+                return rows
+                    .Select(row => new QuizStats(row.Id, row.Title, row.ModuleName, row.QuestionCount, row.Attempts, row.Average))
+                    .ToList();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "[QuizRepository] Could not load the popular quizzes.");
+                return null;
+            }
+        }
+
+        public async Task<int?> MoveQuizzesWithoutTeacherAsync(string teacherId)
+        {
+            try
+            {
+                var quizzes = await _db.Quizzes
+                    .Where(q => q.CreatedByUserId == null)
+                    .ToListAsync();
+
+                foreach (var quiz in quizzes)
+                {
+                    quiz.CreatedByUserId = teacherId;
+                }
+
+                await _db.SaveChangesAsync();
+                return quizzes.Count;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "[QuizRepository] Could not move the quizzes without a teacher to {TeacherId}.", teacherId);
+                return null;
+            }
+        }
+
+        public async Task<List<QuestionAnalysis>?> GetQuestionAnalysisAsync(int quizId)
+        {
+            try
+            {
+                var studentIds = StudentIds();
+
+                var questions = await _db.Questions
+                    .AsNoTracking()
+                    .Where(q => q.QuizId == quizId)
+                    .OrderBy(q => q.Id)
+                    .Select(q => new
+                    {
+                        q.Id,
+                        q.Text,
+                        Options = q.AnswerOptions.Select(o => new { o.Id, o.Text }).ToList()
+                    })
+                    .ToListAsync();
+
+                /* Only students' answers count, not teachers or admins trying the quiz */
+                var answers = await _db.UserAnswers
+                    .AsNoTracking()
+                    .Where(a => a.Question.QuizId == quizId && studentIds.Contains(a.UserId))
+                    .Select(a => new { a.QuestionId, a.SelectedAnswerId, a.IsCorrect })
+                    .ToListAsync();
+
+                return questions
+                    .Select(question =>
+                    {
+                        var forQuestion = answers.Where(a => a.QuestionId == question.Id).ToList();
+
+                        /* The wrong option most students chose. Unanswered questions have no option. */
+                        var mostWrong = forQuestion
+                            .Where(a => !a.IsCorrect && a.SelectedAnswerId != null)
+                            .GroupBy(a => a.SelectedAnswerId)
+                            .OrderByDescending(group => group.Count())
+                            .FirstOrDefault();
+
+                        return new QuestionAnalysis(
+                            question.Id,
+                            question.Text,
+                            forQuestion.Count,
+                            forQuestion.Count(a => a.IsCorrect),
+                            mostWrong == null ? null : question.Options.FirstOrDefault(o => o.Id == mostWrong.Key)?.Text,
+                            mostWrong?.Count() ?? 0);
+                    })
+                    .ToList();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "[QuizRepository] Could not load the question analysis for quiz ID {QuizId}.", quizId);
+                return null;
+            }
+        }
     }
 }

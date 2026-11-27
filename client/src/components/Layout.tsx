@@ -9,13 +9,16 @@ interface MenuLink {
     end?: boolean
 }
 
-/* The links for each role, same as _Layout.cshtml in Subapp 1 */
+/*
+ * The links for each role, same as _Layout.cshtml in Subapp 1:
+ * students have a dashboard, administrators the user page, and everyone has Quizzes and Modules.
+ */
 function roleLinks(hasRole: (role: string) => boolean): MenuLink[] {
     if (hasRole('Admin')) {
-        return [{ to: '/admin', label: 'Admin' }, { to: '/quizzes', label: 'Quizzes' }]
+        return [{ to: '/users', label: 'Users' }, { to: '/quizzes', label: 'Quizzes' }, { to: '/modules', label: 'Modules' }]
     }
     if (hasRole('Teacher')) {
-        return [{ to: '/teacher', label: 'Dashboard' }, { to: '/quizzes', label: 'Quizzes' }]
+        return [{ to: '/quizzes', label: 'Quizzes' }, { to: '/modules', label: 'Modules' }]
     }
     if (hasRole('Student')) {
         return [

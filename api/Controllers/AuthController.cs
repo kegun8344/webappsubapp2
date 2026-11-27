@@ -22,6 +22,12 @@ namespace api.Controllers
         /* Everyone who signs up becomes a student. Only an administrator can give the Teacher role. */
         private const string DefaultRole = "Student";
 
+        /*
+         * The user's security stamp at login. Identity changes the stamp when an administrator
+         * changes the role or locks the account, and Program.cs then refuses the old token.
+         */
+        public const string SecurityStampClaim = "security_stamp";
+
         private readonly UserManager<ApplicationUser> userManager;
         private readonly SignInManager<ApplicationUser> signInManager;
         private readonly IConfiguration configuration;
@@ -154,7 +160,8 @@ namespace api.Controllers
             {
                 new(ClaimTypes.NameIdentifier, user.Id),
                 new(ClaimTypes.Email, user.Email ?? ""),
-                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new(SecurityStampClaim, user.SecurityStamp ?? "")
             };
 
             /* [Authorize(Roles = "Teacher")] reads these */

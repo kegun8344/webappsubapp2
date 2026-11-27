@@ -22,8 +22,11 @@ namespace api.DAL
                 var users = await _db.Users
                     .AsNoTracking()
                     .OrderBy(user => user.Email)
-                    .Select(user => new { user.Id, user.Email })
+                    .Select(user => new { user.Id, user.Email, user.LockoutEnd })
                     .ToListAsync();
+
+                /* SQLite cannot compare dates with a time zone, so "still locked" is checked after loading */
+                var now = DateTimeOffset.UtcNow;
 
                 // Roles per user, from the Identity role tables.
                 var roleRows = await (
@@ -87,7 +90,8 @@ namespace api.DAL
                             created?.Created ?? 0,
                             created?.Published ?? 0,
                             completed,
-                            points);
+                            points,
+                            user.LockoutEnd > now);
                     })
                     .ToList();
             }
@@ -187,6 +191,88 @@ namespace api.DAL
             catch (Exception e)
             {
                 _logger.LogError(e, "[UserRepository] Could not delete user ID {UserId}.", userId);
+                return null;
+            }
+        }
+    
+
+        public async Task<List<NewUser>?> GetNewUsersAsync(int count)
+        {
+            try
+            {
+                var adminIds =
+                    from userRole in _db.UserRoles
+                    join role in _db.Roles on userRole.RoleId equals role.Id
+                    where role.Name == "Admin"
+                    select userRole.UserId;
+
+                var teacherIds =
+                    from userRole in _db.UserRoles
+                    join role in _db.Roles on userRole.RoleId equals role.Id
+                    where role.Name == "Teacher"
+                    select userRole.UserId;
+
+                return await _db.Users
+                    .AsNoTracking()
+                    .Where(user => !adminIds.Contains(user.Id))
+                    .OrderByDescending(user => user.CreatedAt)
+                    .Take(count)
+                    .Select(user => new NewUser(
+                        user.Id,
+                        user.Email ?? string.Empty,
+                        teacherIds.Contains(user.Id),
+                        user.CreatedAt))
+                    .ToListAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "[UserRepository] Could not load the new users.");
+                return null;
+            }
+        }
+
+        public async Task<List<LockedUser>?> GetLockedUsersAsync()
+        {
+            try
+            {
+                /* SQLite cannot compare dates with a time zone, so "still locked" is checked after loading */
+                var users = await _db.Users
+                    .AsNoTracking()
+                    .Where(user => user.LockoutEnd != null)
+                    .Select(user => new { user.Id, user.Email, user.LockoutEnd })
+                    .ToListAsync();
+
+                var now = DateTimeOffset.UtcNow;
+
+                return users
+                    .Where(user => user.LockoutEnd > now)
+                    .OrderBy(user => user.Email)
+                    .Select(user => new LockedUser(user.Id, user.Email ?? string.Empty, user.LockoutEnd!.Value))
+                    .ToList();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "[UserRepository] Could not load the locked users.");
+                return null;
+            }
+        }
+
+        public async Task<List<TeacherOption>?> GetTeachersAsync()
+        {
+            try
+            {
+                return await (
+                    from user in _db.Users.AsNoTracking()
+                    join userRole in _db.UserRoles on user.Id equals userRole.UserId
+                    join role in _db.Roles on userRole.RoleId equals role.Id
+                    where role.Name == "Teacher"
+                    orderby user.Email
+                    select new TeacherOption(user.Id, user.Email ?? string.Empty))
+                    .ToListAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "[UserRepository] Could not load the teachers.");
                 return null;
             }
         }

@@ -9,6 +9,8 @@ interface ConfirmDialogProps {
     title: string
     message: ReactNode
     confirmText?: string
+    /* The colour of the confirm button, red by default. E.g. 'btn-primary' for "Make teacher". */
+    confirmClass?: string
     busy?: boolean
     onConfirm: () => void
     onCancel: () => void
@@ -19,6 +21,7 @@ export default function ConfirmDialog({
     title,
     message,
     confirmText = 'Delete',
+    confirmClass = 'btn-danger',
     busy = false,
     onConfirm,
     onCancel,
@@ -68,7 +71,7 @@ export default function ConfirmDialog({
                             <button ref={cancelButton} type="button" className="btn btn-outline-secondary" onClick={onCancel} disabled={busy}>
                                 Cancel
                             </button>
-                            <button type="button" className="btn btn-danger" onClick={onConfirm} disabled={busy}>
+                            <button type="button" className={`btn ${confirmClass}`} onClick={onConfirm} disabled={busy}>
                                 {busy ? 'Working...' : confirmText}
                             </button>
                         </div>

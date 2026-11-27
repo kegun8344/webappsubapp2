@@ -18,6 +18,10 @@ import ModuleFormPage from './pages/ModuleFormPage'
 import SettingsProvider from './context/SettingsProvider'
 import SettingsPage from './pages/SettingsPage'
 import DeleteAccountPage from './pages/DeleteAccountPage'
+import UsersPage from './pages/UsersPage'
+import DeleteUserPage from './pages/DeleteUserPage'
+import MoveQuizPage from './pages/MoveQuizPage'
+import QuizAnalysisPage from './pages/QuizAnalysisPage'
 
 /* All pages and their addresses. New pages are added inside the Layout route. */
 export default function App() {
@@ -46,6 +50,12 @@ export default function App() {
                         <Route path="/modules/:id/edit" element={<RequireAuth roles={['Teacher', 'Admin']}><ModuleFormPage /></RequireAuth>} />
                         {/* Only students have a dashboard (the API also gives 403 to everyone else) */}
                         <Route path="/dashboard" element={<RequireAuth roles={['Student']}><DashboardPage /></RequireAuth>} />
+                        {/* Only administrators manage users and move quizzes (the API checks the role too) */}
+                        <Route path="/users" element={<RequireAuth roles={['Admin']}><UsersPage /></RequireAuth>} />
+                        <Route path="/users/:id/delete" element={<RequireAuth roles={['Admin']}><DeleteUserPage /></RequireAuth>} />
+                        <Route path="/quizzes/:id/move" element={<RequireAuth roles={['Admin']}><MoveQuizPage /></RequireAuth>} />
+                        {/* The quiz owner or an administrator (the API checks the owner) */}
+                        <Route path="/quizzes/:id/analysis" element={<RequireAuth roles={['Teacher', 'Admin']}><QuizAnalysisPage /></RequireAuth>} />
 
                         <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                         <Route path="/settings/delete" element={<RequireAuth><DeleteAccountPage /></RequireAuth>} />
