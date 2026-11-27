@@ -58,7 +58,7 @@ function MoveAllForm({ count, teachers, onMoved }: MoveAllFormProps) {
                     onChange={(event) => setTeacherId(event.target.value)}
                     required
                 >
-                    <option value="">Choose a teacher</option>
+                    <option value="" disabled hidden>Choose a teacher</option>
                     {teachers.map((teacher) => (
                         <option key={teacher.id} value={teacher.id}>{teacher.email}</option>
                     ))}
@@ -90,6 +90,12 @@ function StatCard({ title, children }: { title: string; children: ReactNode }) {
  * the numbers, quizzes that need attention, locked accounts (admin), recent activity,
  * the teacher's quizzes, and for administrators the popular quizzes and new users.
  */
+/* Where "Fix" should jump on the edit page. Questions first, a quiz cannot start without them. */
+function fixTarget(problems: string[]): string {
+    if (problems.includes('No questions')) return '?fix=questions'
+    if (problems.includes('No description')) return '?fix=description'
+    return ''
+}
 export default function StaffHome({ home, isAdmin, onQuizzesMoved }: StaffHomeProps) {
     return (
         <>
@@ -148,7 +154,7 @@ export default function StaffHome({ home, isAdmin, onQuizzesMoved }: StaffHomePr
                                             <span key={problem} className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">{problem}</span>
                                         ))}
                                     </div>
-                                    <Link className="btn btn-outline-primary btn-sm" to={`/quizzes/${quiz.quizId}/edit`} aria-label={`Fix ${quiz.title}`}>
+                                    <Link className="btn btn-outline-primary btn-sm" to={`/quizzes/${quiz.quizId}/edit${fixTarget(quiz.problems)}`} aria-label={`Fix ${quiz.title}`}>
                                         Fix
                                     </Link>
                                     {isAdmin && (

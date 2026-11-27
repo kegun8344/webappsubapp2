@@ -293,7 +293,11 @@ export default function QuizzesPage() {
                             </div>
 
                             <div className="col-6 col-lg-3">
-                                <label htmlFor="tagId" className="form-label fw-semibold">Tag</label>
+                                {/* "Manage" sits next to the label, so the Tag field lines up with the other filters */}
+                                <div className="d-flex justify-content-between align-items-baseline gap-2">
+                                    <label htmlFor="tagId" className="form-label fw-semibold">Tag</label>
+                                    <Link to="/tags" className="small link-offset-2">Manage</Link>
+                                </div>
                                 <select
                                     id="tagId"
                                     className="form-select"
@@ -302,7 +306,7 @@ export default function QuizzesPage() {
                                 >
                                     <option value="">Any</option>
                                     {/* Shared tags first, then the user's own, like the groups in Subapp 1 */}
-                                    <optgroup label="Shared tags">
+                                    <optgroup label="Course tags">
                                         {tags.filter((tag) => tag.isShared).map((tag) => (
                                             <option key={tag.id} value={tag.id}>{tag.name}</option>
                                         ))}
