@@ -25,6 +25,7 @@ namespace api.DTOs
                     {
                         QuestionId = question.Id,
                         Text = question.Text,
+                        Context = question.Context,
                         Options = question.AnswerOptions
                             .OrderBy(option => option.Id)
                             .Select(option => new PlayOptionDto { Id = option.Id, Text = option.Text })
@@ -38,6 +39,9 @@ namespace api.DTOs
     public class PlayQuestionDto
     {
         public int QuestionId { get; set; }
+
+        /* Optional text shown above the question */
+        public string? Context { get; set; }
 
         public string Text { get; set; } = string.Empty;
 

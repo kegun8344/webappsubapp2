@@ -72,6 +72,8 @@ export interface AnswerOption {
 export interface Question {
     id: number
     text: string
+    /* Optional scenario or explanation shown above the question */
+    context: string | null
     options: AnswerOption[]
 }
 
@@ -101,6 +103,7 @@ export interface QuizFormRequest {
 export interface QuestionFormRequest {
     text: string
     answers: string[]
+    context: string | null
     /* Position (starting at 0) of the correct answer */
     correctAnswerIndex: number
 }

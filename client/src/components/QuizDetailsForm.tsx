@@ -117,7 +117,7 @@ export default function QuizDetailsForm({ initial, modules, mode, onSubmit }: Qu
                     value={values.moduleId}
                     onChange={(event) => update('moduleId', event.target.value)}
                 >
-                    <option value="">Choose a module</option>
+                    <option value="" disabled hidden>Choose a module</option>
                     {modules.map((module) => (
                         <option key={module.id} value={module.id}>{module.name}</option>
                     ))}

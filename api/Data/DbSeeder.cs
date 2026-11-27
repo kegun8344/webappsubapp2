@@ -121,7 +121,8 @@ namespace api.Data
 
                     Questions = new List<Question>
                     {
-                        CreateQuestion(
+                        CreateQuestionWithContext(
+                            "A student opens /Quiz/Details/5 in the browser. The app has to read the id, get the quiz from the database and choose which page to show.",
                             "Which component in MVC handles incoming requests?",
                             2,
                             "Model",
@@ -202,8 +203,9 @@ namespace api.Data
                             "dotnet ef database update",
                             "dotnet ef database drop"),
 
-                        CreateQuestion(
-                            "What does Include() do in a LINQ query?",
+                        CreateQuestionWithContext(
+                            "var quizzes = await context.Quizzes\n    .Include(q => q.Questions)\n    .ToListAsync();",
+                            "What does Include() do in the code above?",
                             3,
                             "Filters the rows",
                             "Sorts the result",
@@ -312,7 +314,17 @@ namespace api.Data
             return module.Id;
         }
 
-
+        /* Same as CreateQuestion, but with a scenario or code example shown above the question */
+        private static Question CreateQuestionWithContext(
+            string context,
+            string text,
+            int correctIndex,
+            params string[] options)
+        {
+            var question = CreateQuestion(text, correctIndex, options);
+            question.Context = context;
+            return question;
+        }
         /*
          * Creates a question together with its answer options.
          * correctIndex is zero-based and identifies which option is correct.

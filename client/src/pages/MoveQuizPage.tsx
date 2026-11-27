@@ -128,7 +128,7 @@ export default function MoveQuizPage() {
                                         setFieldError(null)
                                     }}
                                 >
-                                    <option value="">Choose a teacher</option>
+                                        <option value="" disabled hidden>Choose a teacher</option>
                                     {info.teachers.map((teacher) => (
                                         <option key={teacher.id} value={teacher.id}>{teacher.email}</option>
                                     ))}

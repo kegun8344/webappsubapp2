@@ -101,7 +101,7 @@ export default function TagEditor({ quizId, tags, catalog, canShare, onChanged }
                     <label htmlFor="existing-tag" className="form-label small">Add a tag from the catalog</label>
                     <div className="d-flex gap-2">
                         <select id="existing-tag" className="form-select" value={selectedTagId} onChange={(event) => setSelectedTagId(event.target.value)}>
-                            <option value="">Choose a tag</option>
+                            <option value="" disabled hidden>Choose a tag</option>
                             <optgroup label="Shared tags">
                                 {available.filter((tag) => tag.isShared).map((tag) => (
                                     <option key={tag.id} value={tag.id}>{tag.name}</option>

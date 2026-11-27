@@ -1,5 +1,6 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import ConfirmDialog from '../components/ConfirmDialog'
 import ErrorAlert from '../components/ErrorAlert'
 import LoadingSpinner from '../components/LoadingSpinner'
 import QuizResultCard from '../components/QuizResultCard'
@@ -23,20 +24,34 @@ function loadErrorMessage(err: unknown): string {
     return 'The quiz could not be loaded. Please try again.'
 }
 
-/* Taking a quiz, the same layout as QuizPlayer/Take in Subapp 1. The result is shown on the same page afterwards. */
+/*
+ * Taking a quiz, the same as QuizPlayer/Take in Subapp 1:
+ * one question per page with Back and Next, and an overview before submitting.
+ * The result is shown on the same page afterwards.
+ */
 export default function PlayQuizPage() {
     const quizId = Number(useParams().id)
+
+    const navigate = useNavigate()
+
+    /* The "Leave this quiz?" popup, only shown when something has been answered */
+    const [showLeave, setShowLeave] = useState(false)
 
     const [loaded, setLoaded] = useState<LoadedQuiz>({ id: null, quiz: null, error: null })
 
     /* The chosen option per question ID */
     const [answers, setAnswers] = useState<Record<number, number>>({})
 
-    /* Turned on after a submit with unanswered questions, so they are marked in red */
-    const [showMissing, setShowMissing] = useState(false)
+    /* Which question is shown. The number of questions means the overview. */
+    const [step, setStep] = useState(0)
+
     const [submitting, setSubmitting] = useState(false)
     const [submitError, setSubmitError] = useState<string | null>(null)
     const [result, setResult] = useState<QuizResult | null>(null)
+
+    /* The question or the overview. Focused after Back/Next, so keyboard and screen reader users follow along. */
+    const stepRef = useRef<HTMLDivElement>(null)
+    const moveFocus = useRef(false)
 
     const validId = Number.isInteger(quizId) && quizId > 0
     const isLoading = validId && loaded.id !== quizId
@@ -49,7 +64,10 @@ export default function PlayQuizPage() {
 
         getQuizForPlay(quizId)
             .then((quiz) => {
-                if (active) setLoaded({ id: quizId, quiz, error: null })
+                if (!active) return
+                setLoaded({ id: quizId, quiz, error: null })
+                setAnswers({})
+                setStep(0)
             })
             .catch((err: unknown) => {
                 if (active) setLoaded({ id: quizId, quiz: null, error: loadErrorMessage(err) })
@@ -59,6 +77,13 @@ export default function PlayQuizPage() {
             active = false
         }
     }, [quizId, validId])
+
+    useEffect(() => {
+        if (moveFocus.current) {
+            moveFocus.current = false
+            stepRef.current?.focus()
+        }
+    }, [step])
 
     if (isLoading) {
         return <LoadingSpinner message="Loading quiz..." />
@@ -82,36 +107,41 @@ export default function PlayQuizPage() {
                 onTryAgain={() => {
                     setResult(null)
                     setAnswers({})
-                    setShowMissing(false)
+                    setStep(0)
                     window.scrollTo(0, 0)
                 }}
             />
         )
     }
 
+    const total = quiz.questions.length
+    const onOverview = step === total
+    const current = onOverview ? null : quiz.questions[step]
     const answeredCount = quiz.questions.filter((question) => answers[question.questionId] !== undefined).length
-    const allAnswered = answeredCount === quiz.questions.length
 
-    function choose(questionId: number, optionId: number) {
-        setAnswers((current) => ({ ...current, [questionId]: optionId }))
+    /* Nothing answered yet: just go. Otherwise ask first, since the attempt is not saved. */
+    function leave() {
+        if (answeredCount === 0) {
+            navigate('/quizzes')
+        } else {
+            setShowLeave(true)
+        }
     }
 
-    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault()
+    function goTo(index: number) {
+        moveFocus.current = true
+        setStep(index)
+    }
+
+    function choose(questionId: number, optionId: number) {
+        setAnswers((currentAnswers) => ({ ...currentAnswers, [questionId]: optionId }))
+    }
+
+    async function sendAnswers() {
         setSubmitError(null)
-
-        /* Every question must be answered first. The server also accepts skipped questions, but counts them as wrong. */
-        if (!allAnswered) {
-            setShowMissing(true)
-            const firstMissing = quiz.questions.find((question) => answers[question.questionId] === undefined)
-            if (firstMissing) {
-                document.getElementById(`question-${firstMissing.questionId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-            }
-            return
-        }
-
         setSubmitting(true)
         try {
+            /* Skipped questions are sent as null and counted as wrong, like in Subapp 1 */
             const graded = await submitAttempt(
                 quiz.quizId,
                 quiz.questions.map((question) => ({
@@ -128,89 +158,171 @@ export default function PlayQuizPage() {
         }
     }
 
-    return (
-        <>
-            <h1>{quiz.title}</h1>
+    /* Next and Enter go one step forward. Only the overview sends the answers. */
+    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault()
 
-            {/* How far the student has come */}
-            <div className="d-flex align-items-center gap-3 mb-4">
-                <div
-                    className="progress flex-grow-1"
-                    style={{ height: '0.5rem' }}
-                    role="progressbar"
-                    aria-label="Answered questions"
-                    aria-valuenow={answeredCount}
-                    aria-valuemin={0}
-                    aria-valuemax={quiz.questions.length}
-                >
-                    <div className="progress-bar" style={{ width: `${(answeredCount * 100) / quiz.questions.length}%` }}></div>
+        if (!onOverview) {
+            goTo(step + 1)
+            return
+        }
+
+        void sendAnswers()
+    }
+
+    return (
+        <div className="page-narrow">
+            <button
+                type="button"
+                className="btn btn-outline-secondary d-inline-flex align-items-center gap-2 mb-3"
+                onClick={leave}
+            >
+                <i className="bi bi-arrow-left" aria-hidden="true"></i>
+                Leave quiz
+            </button>
+            <h1 className="landing-title mb-4">{quiz.title}</h1>
+
+            {/* Where the student is: empty on question 1, full on the overview */}
+            <div className="mb-4">
+                <div className="d-flex align-items-center justify-content-between mb-2">
+                    <p className="small text-secondary mb-0" aria-live="polite">
+                        {onOverview ? 'Overview' : `Question ${step + 1} of ${total}`}
+                    </p>
+                    {!onOverview && (
+                        <button
+                            type="button"
+                            className="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
+                            onClick={() => goTo(total)}
+                        >
+                            <i className="bi bi-grid-3x3-gap" aria-hidden="true"></i>Overview
+                        </button>
+                    )}
                 </div>
-                <span className="small text-secondary text-nowrap">
-                    {answeredCount} of {quiz.questions.length} answered
-                </span>
+                <div
+                    className="progress"
+                    style={{ height: 6 }}
+                    role="progressbar"
+                    aria-label="Quiz progress"
+                    aria-valuenow={step}
+                    aria-valuemin={0}
+                    aria-valuemax={total}
+                >
+                    <div className="progress-bar" style={{ width: `${(step * 100) / total}%` }}></div>
+                </div>
             </div>
 
             <form onSubmit={handleSubmit} noValidate>
-                {quiz.questions.map((question, index) => {
-                    const missing = showMissing && answers[question.questionId] === undefined
-
-                    return (
-                        <fieldset
-                            key={question.questionId}
-                            id={`question-${question.questionId}`}
-                            className={`card mb-4${missing ? ' border-danger' : ''}`}
-                            aria-invalid={missing}
-                            aria-describedby={missing ? `question-${question.questionId}-error` : undefined}
-                        >
-                            <div className="card-body">
-                                <legend className="h5">
-                                    {index + 1}. {question.text}
-                                </legend>
-
-                                {question.options.map((option) => {
-                                    const inputId = `q${question.questionId}-a${option.id}`
-
-                                    return (
-                                        <div className="form-check mt-3" key={option.id}>
-                                            {/* All options of a question share one name, so only one can be chosen */}
-                                            <input
-                                                className="form-check-input"
-                                                type="radio"
-                                                id={inputId}
-                                                name={`question-${question.questionId}`}
-                                                checked={answers[question.questionId] === option.id}
-                                                onChange={() => choose(question.questionId, option.id)}
-                                            />
-                                            <label className="form-check-label" htmlFor={inputId}>
-                                                {option.text}
-                                            </label>
-                                        </div>
-                                    )
-                                })}
-
-                                {missing && (
-                                    <p id={`question-${question.questionId}-error`} className="text-danger small mt-3 mb-0">
-                                        Choose an answer to this question.
+                <div ref={stepRef} tabIndex={-1} className="card mb-4">
+                    <div className="card-body">
+                        {current ? (
+                            <>
+                                {/* Optional scenario or code example. pre-wrap keeps line breaks and indentation. */}
+                                {current.context && (
+                                    <p id="question-context" className="text-secondary mb-3" style={{ whiteSpace: 'pre-wrap' }}>
+                                        {current.context}
                                     </p>
                                 )}
-                            </div>
-                        </fieldset>
-                    )
-                })}
+
+                                <h2 id="question-title" className="h5">
+                                    {step + 1}. {current.text}
+                                </h2>
+
+                                <div
+                                    role="radiogroup"
+                                    aria-labelledby="question-title"
+                                    aria-describedby={current.context ? 'question-context' : undefined}
+                                >
+                                    {current.options.map((option) => {
+                                        const inputId = `q${current.questionId}-a${option.id}`
+
+                                        return (
+                                            <div className="form-check mt-3" key={option.id}>
+                                                {/* All options of a question share one name, so only one can be chosen */}
+                                                <input
+                                                    className="form-check-input"
+                                                    type="radio"
+                                                    id={inputId}
+                                                    name={`question-${current.questionId}`}
+                                                    checked={answers[current.questionId] === option.id}
+                                                    onChange={() => choose(current.questionId, option.id)}
+                                                />
+                                                <label className="form-check-label" htmlFor={inputId}>
+                                                    {option.text}
+                                                </label>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <h2 className="h5">Overview</h2>
+                                <p className="text-secondary small mb-3">
+                                    {answeredCount === total
+                                        ? `All ${total} questions answered.`
+                                        : `${answeredCount} of ${total} answered. Questions without an answer count as wrong.`}
+                                </p>
+
+                                {/* One button per question: blue when answered, grey when not. Click to go back to it. */}
+                                <div className="d-flex flex-wrap gap-2 mb-3">
+                                    {quiz.questions.map((question, index) => {
+                                        const done = answers[question.questionId] !== undefined
+
+                                        return (
+                                            <button
+                                                key={question.questionId}
+                                                type="button"
+                                                className={`btn ${done ? 'btn-primary' : 'btn-outline-secondary'}`}
+                                                style={{ minWidth: '2.75rem' }}
+                                                aria-label={`Question ${index + 1}, ${done ? 'answered' : 'not answered'}`}
+                                                onClick={() => goTo(index)}
+                                            >
+                                                {index + 1}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+
+                                <p className="small text-secondary mb-0">
+                                    <span className="badge text-bg-primary me-1">&nbsp;</span>Answered
+                                    <span className="badge border text-secondary ms-3 me-1">&nbsp;</span>Not answered
+                                </p>
+                            </>
+                        )}
+                    </div>
+                </div>
 
                 <ErrorAlert message={submitError} onClose={() => setSubmitError(null)} />
 
-                {showMissing && !allAnswered && (
-                    <p className="text-danger" role="alert">
-                        Answer all questions before you submit ({quiz.questions.length - answeredCount} left).
-                    </p>
-                )}
+                <div className="d-flex flex-wrap gap-2">
+                    {step > 0 && (
+                        <button type="button" className="btn btn-outline-secondary" onClick={() => goTo(step - 1)}>
+                            <i className="bi bi-arrow-left me-1" aria-hidden="true"></i>Back
+                        </button>
+                    )}
 
-                <button type="submit" className="btn btn-hero btn-primary" disabled={submitting}>
-                    {submitting && <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>}
-                    {submitting ? 'Submitting…' : 'Submit quiz'}
-                </button>
+                    {onOverview ? (
+                        <button type="submit" className="btn btn-hero btn-primary" disabled={submitting}>
+                            {submitting && <span className="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>}
+                            {submitting ? 'Submitting…' : 'Submit quiz'}
+                        </button>
+                    ) : (
+                        <button type="submit" className="btn btn-hero btn-primary">
+                            {step === total - 1 ? 'Overview' : 'Next'}
+                            <i className="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+                        </button>
+                    )}
+                </div>
             </form>
-        </>
+
+            <ConfirmDialog
+                show={showLeave}
+                title="Leave this quiz?"
+                message="Your answers from this attempt will not be saved."
+                confirmText="Leave quiz"
+                onConfirm={() => navigate('/quizzes')}
+                onCancel={() => setShowLeave(false)}
+            />
+        </div>
     )
 }

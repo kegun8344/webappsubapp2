@@ -11,6 +11,10 @@ namespace api.Models
         [StringLength(500)] // Cap question text at 500 characters
         public string Text { get; set; } = string.Empty;
 
+        // Optional text shown above the question, e.g. a scenario, code example or explanation
+        [StringLength(1000)]
+        public string? Context { get; set; }
+
         public int QuizId { get; set; } // Foreign key to parent Quiz
 
         public Quiz Quiz { get; set; } = null!;

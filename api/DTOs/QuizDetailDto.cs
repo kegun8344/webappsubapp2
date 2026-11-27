@@ -56,6 +56,8 @@ namespace api.DTOs
 
         public string Text { get; set; } = string.Empty;
 
+        public string? Context { get; set; }
+
         public List<AnswerOptionDto> Options { get; set; } = new();
 
         /* The correct answers are only sent to people who may edit the quiz */
@@ -65,6 +67,7 @@ namespace api.DTOs
             {
                 Id = question.Id,
                 Text = question.Text,
+                Context = question.Context,
                 Options = question.AnswerOptions
                     .OrderBy(option => option.Id)
                     .Select(option => new AnswerOptionDto

@@ -99,6 +99,7 @@ function QuestionForm({ quiz, question }: QuestionFormProps) {
     const startCorrect = question ? question.options.findIndex((option) => option.isCorrect) : -1
 
     const [text, setText] = useState(question?.text ?? '')
+    const [context, setContext] = useState(question?.context ?? '')
     const [answers, setAnswers] = useState<AnswerRow[]>(startAnswers.map((answer, index) => ({ key: index, text: answer })))
     const [correctIndex, setCorrectIndex] = useState<number | null>(startCorrect >= 0 ? startCorrect : null)
     const [errors, setErrors] = useState<QuestionFormErrors>({ answerFields: [] })
@@ -150,7 +151,12 @@ function QuestionForm({ quiz, question }: QuestionFormProps) {
         setErrors(found)
         if (hasQuestionErrors(found) || correctIndex === null) return
 
-        const body = { text: text.trim(), answers: texts.map((answer) => answer.trim()), correctAnswerIndex: correctIndex }
+        const body = {
+            text: text.trim(),
+            context: context.trim() || null,
+            answers: texts.map((answer) => answer.trim()),
+            correctAnswerIndex: correctIndex,
+        }
 
         setSubmitting(true)
         try {
@@ -184,13 +190,30 @@ function QuestionForm({ quiz, question }: QuestionFormProps) {
                 Back to quiz
             </Link>
 
-            <h1 className="fw-bold mt-2 mb-1">{isEdit ? 'Edit question' : 'Add question'}</h1>
+            <h1 className="landing-title mt-3 mb-2">{isEdit ? 'Edit question' : 'Add question'}</h1>
             <p className="text-secondary mb-4">
                 Quiz: <strong>{quiz.title}</strong>
             </p>
 
             <form onSubmit={handleSubmit} noValidate>
                 {serverError && <div className="alert alert-danger" role="alert">{serverError}</div>}
+
+                {/* Optional context shown above the question when the quiz is played */}
+                <div className="mb-3">
+                    <label htmlFor="question-context" className="form-label fw-semibold">Context (optional)</label>
+                    <textarea
+                        id="question-context"
+                        className="form-control"
+                        rows={3}
+                        maxLength={1000}
+                        value={context}
+                        aria-describedby="context-help"
+                        onChange={(event) => setContext(event.target.value)}
+                    />
+                    <div id="context-help" className="form-text">
+                        A scenario, code example or explanation shown above the question.
+                    </div>
+                </div>
 
                 <div className="mb-4">
                     <label htmlFor="question-text" className="form-label fw-semibold">Question</label>
