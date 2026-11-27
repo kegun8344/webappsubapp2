@@ -87,6 +87,7 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPointRepository, PointRepository>();
+builder.Services.AddScoped<ISettingsRepository, SettingsRepository>();
 
 /*
  * The React app runs on its own port (4000), so the browser needs permission

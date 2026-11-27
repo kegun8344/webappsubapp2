@@ -203,7 +203,7 @@ export default function DashboardPage() {
                                         <tr key={`${attempt.quizId}-${index}`}>
                                             <td className="ps-3 text-break">
                                                 {attempt.quizTitle}
-                                                {!attempt.awardsPoints && <span className="badge text-bg-light border ms-1">Practice</span>}
+                                                {!attempt.awardsPoints && <span className="badge bg-body-tertiary text-body border ms-1">Practice</span>}
                                                 {/* On phones the date column is hidden, so the date is shown here instead */}
                                                 <div className="small text-secondary d-sm-none">{formatDate(attempt.completedAt)}</div>
                                             </td>

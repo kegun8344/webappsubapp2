@@ -494,6 +494,27 @@ namespace api.Migrations
                     b.ToTable("UserAnswers");
                 });
 
+            modelBuilder.Entity("api.Models.UserSettings", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ColorVisionMode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("DarkModeEnabled")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("ReduceMotion")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("UserSettings");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -681,6 +702,17 @@ namespace api.Migrations
                         .IsRequired();
 
                     b.Navigation("Question");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("api.Models.UserSettings", b =>
+                {
+                    b.HasOne("api.Models.ApplicationUser", "User")
+                        .WithOne()
+                        .HasForeignKey("api.Models.UserSettings", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
