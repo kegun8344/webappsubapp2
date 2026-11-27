@@ -4,8 +4,9 @@ using api.Services;
 namespace api.DTOs
 {
     /*
-     * A module as the React app receives it from GET /api/modules.
+     * A module card as the React app receives it from GET /api/modules.
      * Only what a module card needs, never the full entity with its quizzes.
+     * The progress fields are for the signed-in user. Teachers and administrators simply have no progress.
      */
     public class ModuleDto
     {
@@ -24,6 +25,27 @@ namespace api.DTOs
         /* Quizzes the user may see in this module, the same number as on the module cards in Subapp 1 */
         public int QuizCount { get; set; }
 
+        /* Quizzes from teachers and administrators in this module (these give points) */
+        public int OfficialQuizCount { get; set; }
+
+        /* How many of those the user has taken at least once */
+        public int CompletedOfficialQuizCount { get; set; }
+
+        public int ProgressPercent { get; set; }
+
+        public bool IsCompleted { get; set; }
+
+        /* Average of the user's best score on each official quiz taken, null if none */
+        public int? AverageBestScore { get; set; }
+
+        /* 0-3 stars from the average best score (ModuleRules.MasteryStars) */
+        public int MasteryStars { get; set; }
+
+        /* The easiest official quiz the user has not taken yet, null if there is none */
+        public int? NextQuizId { get; set; }
+
+        public string? NextQuizTitle { get; set; }
+
         /* Builds the DTO from the repository's module overview */
         public static ModuleDto FromOverview(ModuleOverview overview)
         {
@@ -36,7 +58,15 @@ namespace api.DTOs
                 Description = module.Description,
                 IconKey = ModuleIcons.Normalize(module.IconKey),
                 ColorIndex = ModuleColors.Resolve(module.ColorIndex, module.Name),
-                QuizCount = overview.VisibleQuizCount
+                QuizCount = overview.VisibleQuizCount,
+                OfficialQuizCount = overview.OfficialQuizCount,
+                CompletedOfficialQuizCount = overview.CompletedOfficialQuizCount,
+                ProgressPercent = PointRules.ModuleProgressPercent(overview.CompletedOfficialQuizCount, overview.OfficialQuizCount),
+                IsCompleted = overview.OfficialQuizCount > 0 && overview.CompletedOfficialQuizCount == overview.OfficialQuizCount,
+                AverageBestScore = overview.AverageBestScore,
+                MasteryStars = ModuleRules.MasteryStars(overview.AverageBestScore),
+                NextQuizId = overview.NextQuizId,
+                NextQuizTitle = overview.NextQuizTitle
             };
         }
     }
