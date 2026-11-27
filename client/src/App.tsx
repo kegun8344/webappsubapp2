@@ -11,6 +11,8 @@ import PlayQuizPage from './pages/PlayQuizPage'
 import CreateQuizPage from './pages/CreateQuizPage'
 import EditQuizPage from './pages/EditQuizPage'
 import QuestionFormPage from './pages/QuestionFormPage'
+import LeaderboardPage from './pages/LeaderboardPage'
+import DashboardPage from './pages/DashboardPage'
 
 /* All pages and their addresses. New pages are added inside the Layout route. */
 export default function App() {
@@ -31,6 +33,9 @@ export default function App() {
                         <Route path="/quizzes/:id/edit" element={<RequireAuth><EditQuizPage /></RequireAuth>} />
                         <Route path="/quizzes/:quizId/questions/new" element={<RequireAuth><QuestionFormPage /></RequireAuth>} />
                         <Route path="/quizzes/:quizId/questions/:questionId/edit" element={<RequireAuth><QuestionFormPage /></RequireAuth>} />
+                        <Route path="/leaderboard" element={<RequireAuth><LeaderboardPage /></RequireAuth>} />
+                        {/* Only students have a dashboard (the API also gives 403 to everyone else) */}
+                        <Route path="/dashboard" element={<RequireAuth roles={['Student']}><DashboardPage /></RequireAuth>} />
 
                         <Route path="*" element={<NotFoundPage />} />
                     </Route>
