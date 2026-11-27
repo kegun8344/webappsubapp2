@@ -65,4 +65,6 @@ export interface QuizResult {
     pointsForLevel: number
     leveledUp: boolean
     newBadges: NewBadge[]
+    /* Open mistakes in this quiz after the attempt */
+    reviewCount: number
 }

@@ -116,6 +116,9 @@ namespace api.DTOs
         public bool LeveledUp { get; set; }
 
         public List<BadgeDto> NewBadges { get; set; } = new();
+
+        /* Open mistakes in this quiz after the attempt. Above 0 shows "Review mistakes" on the result. */
+        public int ReviewCount { get; set; }
     }
 
     /* One line of points, e.g. Reason "Streak", Points 30 */

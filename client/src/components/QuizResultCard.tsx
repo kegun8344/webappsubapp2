@@ -202,6 +202,12 @@ export default function QuizResultCard({ result, onTryAgain }: QuizResultCardPro
                     )}
 
                     <div className="d-grid gap-2">
+                        {/* Offered when there are mistakes in this quiz to practise */}
+                        {result.reviewCount > 0 && (
+                            <Link to={`/review?quizId=${result.quizId}`} className="btn btn-warning">
+                                Review mistakes ({result.reviewCount})
+                            </Link>
+                        )}
                         <button type="button" className="btn btn-outline-primary" onClick={onTryAgain}>
                             Try again
                         </button>

@@ -148,6 +148,10 @@ namespace api.Controllers
 
             await TrySaveAnswersAsync(userId, grade.Answers);
 
+            /* Open mistakes in this quiz, so the result can offer "Review mistakes" (same as Subapp 1) */
+            result.ReviewCount = (await reviewRepository.GetMistakeQuestionIdsAsync(
+                userId, User.IsInRole("Admin"), int.MaxValue, quizId)).Count;
+
             var badgesAfter = await TryGetBadgeStatsAsync(userId);
 
             if (badgesBefore != null && badgesAfter != null)
