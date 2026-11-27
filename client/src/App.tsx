@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import NotFoundPage from './pages/NotFoundPage'
 import QuizzesPage from './pages/QuizzesPage'
+import PlayQuizPage from './pages/PlayQuizPage'
 
 /* All pages and their addresses. New pages are added inside the Layout route. */
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
 
                         {/* Pages that need a signed-in user. RequireAuth sends visitors to the login page. */}
                         <Route path="/quizzes" element={<RequireAuth><QuizzesPage /></RequireAuth>} />
+                        <Route path="/quizzes/:id/play" element={<RequireAuth><PlayQuizPage /></RequireAuth>} />
 
                         <Route path="*" element={<NotFoundPage />} />
                     </Route>
