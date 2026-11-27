@@ -1432,3 +1432,51 @@ html:not(.same-page) main {
     --bs-warning: var(--sq-cvd-warning);
     --bs-warning-rgb: var(--sq-cvd-warning-rgb);
 }
+
+/*
+ * Squircle corners (smooth, iOS-like) on cards, buttons, inputs, popups and icon tiles.
+ * Only browsers that support corner-shape get them (Chrome and Edge 139+).
+ * Other browsers keep the normal rounded corners, so nothing breaks.
+ * A squircle looks less round than a normal corner with the same radius,
+ * so the radius is a bit bigger inside this block.
+ * Pills and circles (badges, rings, avatars) are left out on purpose.
+ */
+@supports (corner-shape: squircle) {
+    :root {
+        --bs-border-radius-sm: 0.45rem;
+        --bs-border-radius: 0.65rem;
+        --bs-border-radius-lg: 0.9rem;
+        --bs-border-radius-xl: 1.2rem;
+    }
+
+    .card,
+    .btn:not(.rounded-pill):not(.rounded-circle),
+    .form-control,
+    .form-select,
+    .input-group-text,
+    .modal-content,
+    .alert,
+    .toast,
+    .list-group,
+    .nav-pills .nav-link,    
+    .navbar .nav-link,
+    .popover,
+    .rounded,
+    .rounded-3,
+    .podium-block,    
+    .list-group-item,
+    .card-header,
+    .card-footer,
+    .card-img-top,
+    .card-img-bottom,    
+    .dropdown-menu,
+    .home-action-icon,
+    .landing-feature-icon,
+    .module-icon,
+    .lb-fame-icon,
+    .icon-option span,
+    .memory-card,
+    .memory-card-text {
+        corner-shape: squircle;
+    }
+}

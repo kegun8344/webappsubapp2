@@ -63,7 +63,8 @@ export default function LeaderboardPage() {
         <>
             <p className="landing-eyebrow mb-2">Compete</p>
             <h1 className="landing-title mb-2">Leaderboard</h1>
-            <p className="lead text-secondary mb-4">
+            {/* key: the text animates again when the tab changes, like the rest of the results */}
+            <p key={period} className="lead text-secondary mb-4 filter-results">
                 {weekly && data
                     ? `Points from quizzes made by teachers since Monday ${formatDayMonth(data.weekStart)}.`
                     : 'Students ranked by points from quizzes made by teachers.'}
@@ -97,12 +98,12 @@ export default function LeaderboardPage() {
             ) : !data ? (
                 <ErrorAlert message={loaded.error} />
             ) : topThree.length === 0 ? (
-                <p className="text-secondary fst-italic">No students on the leaderboard yet.</p>
+                <p className="text-secondary fst-italic filter-results">No students on the leaderboard yet.</p>
             ) : (
                 <>
                     {/* The signed-in student's own position. Teachers and administrators have none. */}
                     {data.standing && (
-                        <section className="card border-0 shadow-sm lb-standing mb-5" aria-labelledby="standing-heading">
+                        <section className="card border-0 shadow-sm lb-standing mb-5 filter-results" aria-labelledby="standing-heading">
                             <div className="card-body p-4">
                                 <div className="row g-4 align-items-center">
                                     <div className="col-md-auto text-center">
@@ -151,7 +152,7 @@ export default function LeaderboardPage() {
                         Top 3 as a podium. In the HTML they are in order 1, 2, 3 (so screen readers read them in order),
                         but on wider screens CSS order places them as 2, 1, 3 like a real podium.
                     */}
-                    <section aria-labelledby="top-heading" className="mb-5">
+                    <section aria-labelledby="top-heading" className="mb-5 filter-results">
                         <h2 id="top-heading" className="visually-hidden">Top 3</h2>
                         <ol className="podium list-unstyled d-flex flex-column flex-md-row align-items-md-end justify-content-center gap-3 mb-0">
                             {topThree.map((entry, index) => (
@@ -161,7 +162,7 @@ export default function LeaderboardPage() {
                     </section>
 
                     {data.highlights.length > 0 && (
-                        <section aria-labelledby="fame-heading" className="mb-5">
+                        <section aria-labelledby="fame-heading" className="mb-5 filter-results">
                             <h2 id="fame-heading" className="h5 fw-bold mb-3">Hall of fame</h2>
                             <div className="row g-3">
                                 {data.highlights.map((highlight) => (
@@ -187,7 +188,7 @@ export default function LeaderboardPage() {
                     )}
 
                     {others.length > 0 && (
-                        <section aria-labelledby="others-heading">
+                        <section aria-labelledby="others-heading" className="filter-results">
                             <h2 id="others-heading" className="h5 fw-bold mb-3">Everyone else</h2>
                             <ol className="list-unstyled card border-0 shadow-sm mb-0 leaderboard-list">
                                 {others.map((entry) => (

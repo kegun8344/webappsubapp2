@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
 interface MenuLink {
@@ -45,6 +45,27 @@ export default function Layout() {
 
     /* Whether the menu is open on small screens */
     const [menuOpen, setMenuOpen] = useState(false)
+
+    const location = useLocation()
+    const previousPath = useRef<string | null>(null)
+
+    /*
+     * Page transitions, the same as Subapp 1. A new page: <main> gets a new key below, so it mounts again
+     * and the page-in animation in index.css runs. The same page with other filters (only the ?query changed):
+     * the "same-page" class makes only the results (.filter-results) animate, like the script in _Layout.cshtml.
+     * useLayoutEffect runs before the browser paints, so the class is right before anything is shown.
+     */
+    useLayoutEffect(() => {
+        const samePage = previousPath.current === location.pathname
+        document.documentElement.classList.toggle('same-page', samePage)
+
+        /* A real page change starts at the top, like a normal page load in Subapp 1 */
+        if (!samePage) {
+            window.scrollTo(0, 0)
+        }
+
+        previousPath.current = location.pathname
+    }, [location.pathname, location.search])
 
     const links: MenuLink[] = user
         ? [{ to: '/', label: 'Home', end: true }, ...roleLinks(hasRole), { to: '/leaderboard', label: 'Leaderboard' }]
@@ -114,7 +135,7 @@ export default function Layout() {
                 </div>
             </nav>
 
-            <main className="container pb-5">
+            <main key={location.pathname} className="container pb-5">
                 <Outlet />
             </main>
         </>

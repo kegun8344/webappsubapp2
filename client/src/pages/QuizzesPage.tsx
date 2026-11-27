@@ -334,7 +334,7 @@ export default function QuizzesPage() {
             ) : quizzes.length === 0 ? (
                 <EmptyState view={filters.view} hasActiveFilters={hasActiveFilters} onClear={clearFilters} />
             ) : (
-                <ul className="row g-3 list-unstyled">
+                <ul className="row g-3 list-unstyled filter-results">
                     {quizzes.map((quiz) => (
                         <QuizCard key={quiz.id} quiz={quiz} onDelete={setQuizToDelete} />
                     ))}
@@ -376,7 +376,7 @@ function EmptyState({ view, hasActiveFilters, onClear }: EmptyStateProps) {
     )
 
     return (
-        <div className="mx-auto text-center py-5" style={{ maxWidth: 520 }}>
+        <div className="mx-auto text-center py-5 filter-results" style={{ maxWidth: 520 }}>
             {hasActiveFilters ? (
                 <>
                     <h2 className="h4 fw-bold mb-2">No quizzes match your search</h2>
