@@ -931,10 +931,13 @@ body>.container {
 
 /* ===== Page transitions =====
    The page content fades in and moves down into place when a page opens.
-   Only <main> is animated, so the navbar and footer stay still. */
+   Only what is inside <main>is animated,
+   so the navbar and footer stay still. It runs when an element appears,
+   so the spinner fades in,
+   and the content fades in when it replaces the spinner. */
 
 /* A new page: all the content animates */
-html:not(.same-page) main {
+html:not(.same-page) main > * {
     /* backwards, not both: when the fade is done, main lets go of it, so Bootstrap modals inside it are not covered by the dark backdrop */
     animation: page-in 0.3s ease-out backwards;
 }
@@ -973,7 +976,7 @@ html:not(.same-page) main {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    html:not(.same-page) main,
+    html: not(.same-page) main > *,
         .same-page .filter-results,
         .live-fade-in {
             animation: none;

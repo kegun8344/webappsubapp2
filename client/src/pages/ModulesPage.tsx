@@ -20,6 +20,8 @@ export default function ModulesPage() {
 
     const [modules, setModules] = useState<Module[] | null>(null)
     const [summary, setSummary] = useState<ModuleSummary | null>(null)
+    /* True when the journey banner is loaded (or failed), so the page can show everything at once */
+    const [summaryLoaded, setSummaryLoaded] = useState(false)
     const [loadError, setLoadError] = useState<string | null>(null)
 
     /* A message from the page that sent the user here, e.g. "Module created" */
@@ -43,9 +45,14 @@ export default function ModulesPage() {
         if (isStudent) {
             getModuleSummary()
                 .then((result) => {
-                    if (active) setSummary(result)
+                    if (active) {
+                        setSummary(result)
+                        setSummaryLoaded(true)
+                    }
                 })
-                .catch(() => {})
+                .catch(() => {
+                    if (active) setSummaryLoaded(true)
+                })
         }
 
         return () => {
@@ -73,6 +80,8 @@ export default function ModulesPage() {
         }
     }
 
+    /* The title shows at once. The banner and the cards wait for each other, so they fade in together. */
+    const ready = modules !== null && (!isStudent || summaryLoaded)
     const showJourney = isStudent && summary !== null && summary.totalOfficialQuizzes > 0
 
     /* The journey ring in site.css reads the percentage from the --p CSS variable */
@@ -97,7 +106,7 @@ export default function ModulesPage() {
                 )}
             </section>
 
-            {showJourney && summary && (
+            {ready && showJourney && summary && (
                 <section className="card border-0 shadow-sm journey mb-4" aria-labelledby="journey-heading">
                     <div className="card-body p-4">
                         <div className="row g-4 align-items-center">
@@ -147,7 +156,7 @@ export default function ModulesPage() {
 
             {loadError ? (
                 <ErrorAlert message={loadError} />
-            ) : modules === null ? (
+            ) : modules === null || !ready ? (
                 <LoadingSpinner message="Loading modules..." />
             ) : modules.length === 0 ? (
                 <div className="mx-auto text-center py-5" style={{ maxWidth: 520 }}>

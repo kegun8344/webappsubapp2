@@ -38,7 +38,14 @@ export default function DashboardPage() {
     }
 
     if (!dashboard) {
-        return <LoadingSpinner message="Loading your dashboard..." />
+        /* The title shows at once, like the other pages. Only the content waits. */
+        return (
+            <>
+                <h1 className="landing-title mb-2">Dashboard</h1>
+                <p className="lead text-secondary mb-5">Here is how you are doing.</p>
+                <LoadingSpinner message="Loading your dashboard..." />
+            </>
+        )
     }
 
     const progressPercent = dashboard.pointsForLevel === 0 ? 0 : Math.floor((dashboard.pointsIntoLevel * 100) / dashboard.pointsForLevel)
