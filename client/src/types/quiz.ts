@@ -15,6 +15,17 @@ export interface Tag {
     isShared: boolean
 }
 
+/* The colours a tag can have, the same as Tag.AllowedColors in the API, with the names shown to the user */
+export const tagColors: { value: string; label: string }[] = [
+    { value: 'primary', label: 'Blue' },
+    { value: 'secondary', label: 'Gray' },
+    { value: 'success', label: 'Green' },
+    { value: 'danger', label: 'Red' },
+    { value: 'warning', label: 'Yellow' },
+    { value: 'info', label: 'Light blue' },
+    { value: 'dark', label: 'Black' },
+]
+
 /* One card on the quiz list (QuizListItemDto) */
 export interface QuizListItem {
     id: number
@@ -45,8 +56,59 @@ export interface QuizFilters {
     tagId?: number
 }
 
-/* A module in the filter dropdown. Only the fields this page needs from GET /api/modules. */
+/* A module in the dropdowns. Only the fields these pages need from GET /api/modules. */
 export interface ModuleOption {
     id: number
     name: string
+}
+
+export interface AnswerOption {
+    id: number
+    text: string
+    /* Only sent to people who may edit the quiz, otherwise null */
+    isCorrect: boolean | null
+}
+
+export interface Question {
+    id: number
+    text: string
+    options: AnswerOption[]
+}
+
+/* One quiz with its questions, for the edit page (QuizDetailDto) */
+export interface QuizDetail {
+    id: number
+    title: string
+    description: string | null
+    difficulty: Difficulty
+    moduleId: number
+    isPublic: boolean
+    awardsPoints: boolean
+    canManage: boolean
+    tags: Tag[]
+    questions: Question[]
+}
+
+/* The body when creating or updating a quiz (QuizFormDto) */
+export interface QuizFormRequest {
+    title: string
+    description: string | null
+    difficulty: Difficulty
+    moduleId: number
+}
+
+/* The body when adding or changing a question (QuestionFormDto) */
+export interface QuestionFormRequest {
+    text: string
+    answers: string[]
+    /* Position (starting at 0) of the correct answer */
+    correctAnswerIndex: number
+}
+
+/* The body when creating a tag on a quiz (CreateTagDto) */
+export interface CreateTagRequest {
+    name: string
+    color: string
+    /* Only used for teachers and administrators. The server ignores it for students. */
+    shared: boolean
 }
