@@ -21,6 +21,7 @@ namespace api.Data
         public DbSet<Tag> Tags { get; set; }
         public DbSet<Module> Modules { get; set; }
         public DbSet<ReviewDismissal> ReviewDismissals { get; set; }
+        public DbSet<UserSettings> UserSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -132,6 +133,12 @@ namespace api.Data
             // Supports the review query: the clear times of one user, per quiz.
             builder.Entity<ReviewDismissal>()
                 .HasIndex(d => new { d.UserId, d.QuizId });
+
+            builder.Entity<UserSettings>()
+                .HasOne(s => s.User)
+                .WithOne()
+                .HasForeignKey<UserSettings>(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
