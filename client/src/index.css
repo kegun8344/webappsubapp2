@@ -1480,3 +1480,10 @@ html:not(.same-page) main {
         corner-shape: squircle;
     }
 }
+
+/* "Fix" from Needs attention: a yellow ring around the missing part of the edit page.
+   Also on :focus, so it wins over the normal blue focus ring. */
+.attention-highlight,
+.attention-highlight:focus {
+    box-shadow: 0 0 0 0.3rem rgba(var(--bs-warning-rgb), 0.6);
+}

@@ -139,8 +139,8 @@ function ModuleForm({ options, module }: ModuleFormProps) {
 
     return (
         <div className="mx-auto" style={{ maxWidth: 700 }}>
-            <h1 className="fw-bold mb-1">{isEdit ? 'Edit Module' : 'Create Module'}</h1>
-            <p className="text-secondary mb-4">{isEdit ? 'Update the module name, description, icon or colour.' : 'Add a new learning area to ITPE3200.'}</p>
+            <h1 className="landing-title mb-2">{isEdit ? 'Edit Module' : 'Create Module'}</h1>
+            <p className="lead text-secondary mb-4">{isEdit ? 'Update the module name, description, icon or colour.' : 'Add a new learning area to ITPE3200.'}</p>
 
             <form onSubmit={handleSubmit} noValidate>
                 {serverError && <div className="text-danger mb-3" role="alert">{serverError}</div>}

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import LoadingSpinner from './LoadingSpinner'
 
@@ -31,8 +31,16 @@ export default function RequireAuth({ children, roles }: RequireAuthProps) {
     if (roles && !roles.some((role) => hasRole(role))) {
         return (
             <div className="mx-auto text-center py-5" style={{ maxWidth: 520 }}>
-                <h1 className="h4 fw-bold mb-2">Access denied</h1>
-                <p className="text-secondary mb-0">You do not have access to this page.</p>
+                {/* Icon instead of a status code, same layout as the 404 page */}
+                <div className="display-1 fw-bold text-primary">
+                    <i className="bi bi-lock" aria-hidden="true"></i>
+                </div>
+                <h1 className="h3 fw-bold mb-2">Access denied</h1>
+                <p className="text-secondary mb-4">Your account does not have permission to open this page.</p>
+                <div className="d-grid gap-2">
+                    <Link className="btn btn-primary btn-hero" to="/">Back to home</Link>
+                    <Link className="btn btn-outline-secondary" to="/quizzes">Browse quizzes</Link>
+                </div>
             </div>
         )
     }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import ConfirmDialog from '../components/ConfirmDialog'
 import ErrorAlert from '../components/ErrorAlert'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -44,6 +44,25 @@ export default function EditQuizPage() {
 
     const [questionToDelete, setQuestionToDelete] = useState<{ question: Question; number: number } | null>(null)
     const [deleting, setDeleting] = useState(false)
+
+    /* "Fix" from Needs attention on Home: ?fix=questions or ?fix=description. Scrolls to the missing part and marks it. */
+    const [searchParams] = useSearchParams()
+    const fix = searchParams.get('fix')
+    const quizLoaded = loaded.quiz !== null
+
+    useEffect(() => {
+        if (!quizLoaded || !fix) return
+
+        const target = document.getElementById(fix === 'questions' ? 'add-question' : fix === 'description' ? 'quiz-description' : '')
+        if (!target) return
+
+        target.scrollIntoView({ block: 'center' })
+        target.focus({ preventScroll: true })
+        target.classList.add('attention-highlight')
+
+        const timer = window.setTimeout(() => target.classList.remove('attention-highlight'), 3000)
+        return () => window.clearTimeout(timer)
+    }, [quizLoaded, fix])
     const [changingVisibility, setChangingVisibility] = useState(false)
 
     const isLoading = loaded.id !== quizId
@@ -105,7 +124,10 @@ export default function EditQuizPage() {
     if (!quiz.canManage) {
         return (
             <div className="mx-auto text-center py-5" style={{ maxWidth: 520 }}>
-                <h1 className="h4 fw-bold mb-2">Access denied</h1>
+                <div className="display-1 fw-bold text-primary">
+                    <i className="bi bi-lock" aria-hidden="true"></i>
+                </div>
+                <h1 className="h3 fw-bold mb-2">Access denied</h1>
                 <p className="text-secondary mb-4">Only the creator of this quiz or an administrator can edit it.</p>
                 <Link to="/quizzes" className="btn btn-outline-primary">Back to quizzes</Link>
             </div>
@@ -247,7 +269,7 @@ export default function EditQuizPage() {
                 <section className="mt-5" aria-labelledby="questions-heading">
                     <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                         <h2 id="questions-heading" className="h4 fw-bold mb-0">Questions ({quiz.questions.length})</h2>
-                        <Link className="btn btn-primary d-inline-flex align-items-center gap-2" to={`/quizzes/${quiz.id}/questions/new`}>
+                        <Link id="add-question" className="btn btn-primary d-inline-flex align-items-center gap-2" to={`/quizzes/${quiz.id}/questions/new`}>
                             <i className="bi bi-plus-lg icon-plus" aria-hidden="true"></i>
                             Add question
                         </Link>
