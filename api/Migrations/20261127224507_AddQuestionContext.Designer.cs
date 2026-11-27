@@ -11,7 +11,7 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261127210924_AddQuestionContext")]
+    [Migration("20261127224507_AddQuestionContext")]
     partial class AddQuestionContext
     {
         /// <inheritdoc />

@@ -11,7 +11,7 @@ namespace api.Models
         [StringLength(500)] // Cap question text at 500 characters
         public string Text { get; set; } = string.Empty;
 
-        // Optional text shown above the question, e.g. a scenario, code example or explanation
+        // Optional text shown above the question, e.g. a scenario, code example or explanation (same as Subapp 1)
         [StringLength(1000)]
         public string? Context { get; set; }
 

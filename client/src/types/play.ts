@@ -9,7 +9,7 @@ export interface PlayOption {
 export interface PlayQuestion {
     questionId: number
     text: string
-    /* Optional scenario or explanation shown above the question */
+    /* Optional scenario or code example shown above the question */
     context: string | null
     options: PlayOption[]
 }

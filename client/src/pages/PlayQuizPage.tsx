@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import ConfirmDialog from '../components/ConfirmDialog'
 import ErrorAlert from '../components/ErrorAlert'
@@ -25,22 +25,24 @@ function loadErrorMessage(err: unknown): string {
     return 'The quiz could not be loaded. Please try again.'
 }
 
-/* Taking a quiz, the same as QuizPlayer/Take in Subapp 1. The questions are in QuizQuestionsForm. The result is shown on the same page afterwards. */
+/* Taking a quiz, the same layout as QuizPlayer/Take in Subapp 1. The result is shown on the same page afterwards. */
 export default function PlayQuizPage() {
     const quizId = Number(useParams().id)
-    const navigate = useNavigate()
 
     const [loaded, setLoaded] = useState<LoadedQuiz>({ id: null, quiz: null, error: null })
 
     /* Changing the key starts the question form again with no answers ("Try again") */
+    const navigate = useNavigate()
+
+    /* How many questions are answered, so "Leave quiz" can ask first */
+    const [answeredCount, setAnsweredCount] = useState(0)
+    const [confirmLeave, setConfirmLeave] = useState(false)
+    const closeLeaveDialog = useCallback(() => setConfirmLeave(false), [])
+
     const [formKey, setFormKey] = useState(0)
     const [submitting, setSubmitting] = useState(false)
     const [submitError, setSubmitError] = useState<string | null>(null)
     const [result, setResult] = useState<QuizResult | null>(null)
-
-    /* How many questions are answered (from the form), and the "Leave this quiz?" popup */
-    const [answeredCount, setAnsweredCount] = useState(0)
-    const [showLeave, setShowLeave] = useState(false)
 
     const validId = Number.isInteger(quizId) && quizId > 0
     const isLoading = validId && loaded.id !== quizId
@@ -85,8 +87,8 @@ export default function PlayQuizPage() {
                 result={result}
                 onTryAgain={() => {
                     setResult(null)
-                    setFormKey((key) => key + 1)
                     setAnsweredCount(0)
+                    setFormKey((key) => key + 1)
                     window.scrollTo(0, 0)
                 }}
             />
@@ -106,22 +108,19 @@ export default function PlayQuizPage() {
         }
     }
 
-    /* Nothing answered yet: just go. Otherwise ask first, since the attempt is not saved. */
+    /* "Leave quiz": go straight back if nothing is answered, otherwise ask first (the attempt is not saved) */
     function leave() {
-        if (answeredCount === 0) {
-            navigate('/quizzes')
+        if (answeredCount > 0) {
+            setConfirmLeave(true)
         } else {
-            setShowLeave(true)
+            navigate('/quizzes')
         }
     }
 
     return (
+        /* The same narrow width as Take.cshtml in Subapp 1, so questions are easy to read on big screens */
         <div className="page-narrow">
-            <button
-                type="button"
-                className="btn btn-outline-secondary d-inline-flex align-items-center gap-2 mb-3"
-                onClick={leave}
-            >
+            <button type="button" className="btn btn-outline-secondary d-inline-flex align-items-center gap-2 mb-3" onClick={leave}>
                 <i className="bi bi-arrow-left" aria-hidden="true"></i>
                 Leave quiz
             </button>
@@ -140,12 +139,12 @@ export default function PlayQuizPage() {
             />
 
             <ConfirmDialog
-                show={showLeave}
+                show={confirmLeave}
                 title="Leave this quiz?"
-                message="Your answers from this attempt will not be saved."
+                message={<p className="mb-0">Your answers from this attempt will not be saved.</p>}
                 confirmText="Leave quiz"
                 onConfirm={() => navigate('/quizzes')}
-                onCancel={() => setShowLeave(false)}
+                onCancel={closeLeaveDialog}
             />
         </div>
     )

@@ -56,6 +56,7 @@ namespace api.DTOs
 
         public string Text { get; set; } = string.Empty;
 
+        /* Optional text shown above the question, null if there is none */
         public string? Context { get; set; }
 
         public List<AnswerOptionDto> Options { get; set; } = new();

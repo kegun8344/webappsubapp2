@@ -314,7 +314,8 @@ namespace api.Data
             return module.Id;
         }
 
-        /* Same as CreateQuestion, but with a scenario or code example shown above the question */
+
+        /* A question with a scenario or code example above it, like the examples in Subapp 1 */
         private static Question CreateQuestionWithContext(
             string context,
             string text,

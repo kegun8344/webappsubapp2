@@ -40,10 +40,10 @@ namespace api.DTOs
     {
         public int QuestionId { get; set; }
 
-        /* Optional text shown above the question */
-        public string? Context { get; set; }
-
         public string Text { get; set; } = string.Empty;
+
+        /* Optional scenario or code example shown above the question */
+        public string? Context { get; set; }
 
         public List<PlayOptionDto> Options { get; set; } = new();
     }
