@@ -61,7 +61,6 @@ export default function LeaderboardPage() {
 
     return (
         <>
-            <p className="landing-eyebrow mb-2">Compete</p>
             <h1 className="landing-title mb-2">Leaderboard</h1>
             {/* key: the text animates again when the tab changes, like the rest of the results */}
             <p key={period} className="lead text-secondary mb-4 filter-results">
