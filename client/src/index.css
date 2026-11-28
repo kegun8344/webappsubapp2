@@ -976,7 +976,7 @@ html:not(.same-page) main > * {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    html: not(.same-page) main > *,
+    html:not(.same-page) main > *,
         .same-page .filter-results,
         .live-fade-in {
             animation: none;
